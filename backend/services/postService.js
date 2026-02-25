@@ -1,0 +1,107 @@
+import Post from "../models/Post.js";
+
+/*
+  Create Post Business Logic
+  Used by:
+  - Controller
+  - Federation Inbox (remote post replication)
+*/
+export const createPostService = async ({
+  description,
+  image,
+  isUserPost,
+  userDisplayName,
+  isChannelPost,
+  channelName,
+  federatedId,
+  originServer
+}) => {
+
+  const newPost = new Post({
+    description,
+    image: image || null,
+
+    isUserPost,
+    userDisplayName: isUserPost ? userDisplayName : null,
+
+    isChannelPost: !!isChannelPost,
+    channelName: isChannelPost ? channelName : null,
+
+    federatedId,
+    originServer,
+    serverName: originServer,
+
+    isRemote: false,
+    federationStatus: "local",
+    federatedTo: []
+  });
+
+  return await newPost.save();
+};
+
+
+/*
+  Delete Post Business Logic
+  Used by:
+  - Controller
+  - Federation Inbox (future delete forwarding)
+*/
+export const deletePostService = async (post) => {
+  return await Post.findByIdAndDelete(post._id);
+};
+
+
+/*
+  Like / Unlike Post Business Logic
+  Used by:
+  - Controller
+  - Federation Inbox (remote like handling)
+*/
+export const toggleLikePostService = async (post, actorFederatedId) => {
+
+  const alreadyLiked = post.likedBy.includes(actorFederatedId);
+
+  if (alreadyLiked) {
+    post.likedBy.pull(actorFederatedId);
+    post.likeCount = Math.max(0, post.likeCount - 1);
+  } else {
+    post.likedBy.push(actorFederatedId);
+    post.likeCount += 1;
+  }
+
+  await post.save();
+
+  return {
+    liked: !alreadyLiked,
+    likeCount: post.likeCount
+  };
+};
+
+
+/*
+  Add Comment Business Logic
+  Used by:
+  - Controller
+  - Federation Inbox (remote comment replication)
+*/
+export const addCommentService = async (post, {
+  displayName,
+  image,
+  content,
+  commentFederatedId,
+  originServer
+}) => {
+
+  const newComment = {
+    displayName,
+    image: image || null,
+    content,
+    commentFederatedId,
+    originServer
+  };
+
+  post.comments.push(newComment);
+  await post.save();
+
+  return newComment;
+};

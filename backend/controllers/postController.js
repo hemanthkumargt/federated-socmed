@@ -1,6 +1,13 @@
 import { createError } from "../utils/error.js";
 import Post from "../models/Post.js";
-import Channel from "../models/Channel.js"; 
+import Channel from "../models/Channel.js";
+import {
+  createPostService,
+  deletePostService,
+  toggleLikePostService,
+  addCommentService
+} from "../services/postService.js";
+
 
 export const createPost = async (req, res, next) => {
   try {
@@ -12,9 +19,9 @@ export const createPost = async (req, res, next) => {
 
     const isUserPost = !isChannelPost;
 
-    // ===== CHANNEL POST VALIDATION =====
     let channel = null;
 
+    // Channel validation remains in controller (HTTP validation layer)
     if (isChannelPost) {
       if (!channelName) {
         return next(createError(400, "Channel name is required for channel posts"));
@@ -25,7 +32,6 @@ export const createPost = async (req, res, next) => {
         serverName: req.user.serverName
       });
 
-
       if (!channel) {
         return next(createError(404, "Channel not found"));
       }
@@ -34,7 +40,6 @@ export const createPost = async (req, res, next) => {
         return next(createError(403, "Cannot post directly to a remote channel"));
       }
 
-      // Enforce visibility rules
       if (channel.visibility === "read-only" && req.user.role !== "admin") {
         return next(createError(403, "This channel is read-only"));
       }
@@ -44,7 +49,7 @@ export const createPost = async (req, res, next) => {
       }
     }
 
-    // ===== FEDERATED ID =====
+    // Federated ID generation stays here (request context logic)
     let postFederatedId;
     if (isChannelPost) {
       postFederatedId = `${channelName}@${req.user.serverName}/post/${Date.now()}`;
@@ -52,27 +57,17 @@ export const createPost = async (req, res, next) => {
       postFederatedId = `${req.user.federatedId}/post/${Date.now()}`;
     }
 
-    // ===== CREATE POST =====
-    const newPost = new Post({
+    // Delegate DB creation to service layer
+    const savedPost = await createPostService({
       description: description.trim(),
-      image: image || null,
-
+      image,
       isUserPost,
-      userDisplayName: isUserPost ? req.user.displayName : null,
-
-      isChannelPost: !!isChannelPost,
-      channelName: isChannelPost ? channelName : null,
-
+      userDisplayName: req.user.displayName,
+      isChannelPost,
+      channelName,
       federatedId: postFederatedId,
-      originServer: req.user.serverName,
-      serverName: req.user.serverName,
-
-      isRemote: false,
-      federationStatus: "local",
-      federatedTo: []
+      originServer: req.user.serverName
     });
-
-    const savedPost = await newPost.save();
 
     res.status(201).json({
       success: true,
@@ -84,13 +79,16 @@ export const createPost = async (req, res, next) => {
   }
 };
 
+
 export const deletePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
     const post = await Post.findById(postId);
+
     if (!post) {
       return next(createError(404, "Post not found"));
     }
+
     if (post.isRemote) {
       return next(createError(403, "Cannot modify remote content"));
     }
@@ -101,16 +99,20 @@ export const deletePost = async (req, res, next) => {
     ) {
       return next(createError(403, "Unauthorized action"));
     }
-      
-    await Post.findByIdAndDelete(postId);
+
+    // Delegate deletion to service
+    await deletePostService(post);
+
     res.status(200).json({
       success: true,
       message: "Post deleted successfully"
     });
+
   } catch (err) {
     next(err);
   }
 };
+
 
 export const likePost = async (req, res, next) => {
   try {
@@ -118,47 +120,43 @@ export const likePost = async (req, res, next) => {
     const userId = req.user.federatedId;
 
     const post = await Post.findById(postId);
+
     if (!post) {
       return next(createError(404, "Post not found"));
     }
 
     if (post.isRemote) {
-  // Forward to origin server instead of modifying locally
       return next(createError(403, "Remote like forwarding not implemented yet"));
     }
-    const alreadyLiked = post.likedBy.includes(userId);
 
-    if (alreadyLiked) {
-      post.likedBy.pull(userId);
-      post.likeCount = Math.max(0, post.likeCount - 1);
-    } else {
-      post.likedBy.push(userId);
-      post.likeCount += 1;
-    }
-
-    await post.save();
+    // Delegate like/unlike logic to service
+    const result = await toggleLikePostService(post, userId);
 
     return res.status(200).json({
       success: true,
-      liked: !alreadyLiked,
-      likeCount: post.likeCount
+      liked: result.liked,
+      likeCount: result.likeCount
     });
+
   } catch (err) {
     return next(err);
   }
 };
 
+
 export const getPosts = async (req, res, next) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
+
     res.status(200).json({
       success: true,
       posts
     });
+
   } catch (err) {
     next(err);
   }
-}
+};
 
 
 export const createComment = async (req, res, next) => {
@@ -171,31 +169,32 @@ export const createComment = async (req, res, next) => {
     }
 
     const post = await Post.findById(postId);
+
     if (!post) {
       return next(createError(404, "Post not found"));
     }
 
-    //Later to be Changed - For now, we are not allowing commenting on remote posts until we implement comment forwarding
     if (post.isRemote) {
       return next(createError(403, "Remote comment forwarding not implemented yet"));
     }
 
-    const newComment = {
+    // Generate federated comment ID in controller
+    const commentFederatedId =
+      `${req.user.federatedId}/comment/${Date.now()}`;
+
+    // Delegate comment creation to service
+    await addCommentService(post, {
       displayName: req.user.displayName,
-      image: req.user.image || null,
+      image: req.user.image,
       content: content.trim(),
-      commentFederatedId: `${req.user.federatedId}/comment/${Date.now()}`,
+      commentFederatedId,
       originServer: req.user.serverName
-    };
-
-    console.log(req.user);
-
-    post.comments.push(newComment);
-    await post.save();
+    });
 
     res.status(200).json({
       success: true,
     });
+
   } catch (err) {
     next(err);
   }

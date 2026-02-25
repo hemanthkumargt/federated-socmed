@@ -1,0 +1,78 @@
+import User from "../models/User.js";
+import UserFollow from "../models/UserFollow.js";
+import { createError } from "../utils/error.js";
+
+/**
+ * Core follow logic.
+ * Used by:
+ * - REST followUser controller
+ * - Federation inbox FOLLOW event
+ */
+export const followUserService = async (followerFederatedId,followingFederatedId,followerOriginServer,followingOriginServer) => {
+
+  const existing = await UserFollow.findOne({
+    followerFederatedId,
+    followingFederatedId
+  });
+
+  if (existing) {
+    throw createError(400, "Already following");
+  }
+
+  const newFollow = new UserFollow({
+    followerFederatedId,
+    followingFederatedId,
+    serverName: followerOriginServer,
+    followerOriginServer,
+    followingOriginServer
+  });
+
+  await newFollow.save();
+
+  await User.findOneAndUpdate(
+    { federatedId: followerFederatedId },
+    { $inc: { followingCount: 1 } }
+  );
+
+  await User.findOneAndUpdate(
+    { federatedId: followingFederatedId },
+    { $inc: { followersCount: 1 } }
+  );
+}
+
+
+/**
+ * Core unfollow logic.
+ * Used by:
+ * - REST unfollowUser controller
+ * - Federation inbox UNFOLLOW event
+ */
+export const unfollowUserService = async (
+  followerFederatedId,
+  followingFederatedId
+) => {
+
+  const followStatus = await UserFollow.findOne({
+    followerFederatedId,
+    followingFederatedId
+  });
+
+  if (!followStatus) {
+    throw createError(400, "Not following");
+  }
+
+  await UserFollow.findOneAndDelete({
+    followerFederatedId,
+    followingFederatedId
+  });
+
+  await User.findOneAndUpdate(
+    { federatedId: followerFederatedId },
+    { $inc: { followingCount: -1 } }
+  );
+
+  await User.findOneAndUpdate(
+    { federatedId: followingFederatedId },
+    { $inc: { followersCount: -1 } }
+  );
+};

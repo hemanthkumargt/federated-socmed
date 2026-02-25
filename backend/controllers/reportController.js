@@ -20,15 +20,17 @@ export const createReport = async (req, res, next) => {
         const parts = reportedId.split("@");
 
         if (parts.length < 2) {
-        return next(createError(400, "Invalid reportedId format"));
+            return next(createError(400, "Invalid reportedId format"));
         }
 
-        const afterAt = parts[1]; // food/post/1770468129231
-        const originServer = afterAt.split("/")[0]; // food
+        const afterAt = parts[1];
+        const originServer = afterAt.split("/")[0];
 
-        const isRemoteTarget = originServer !== process.env.SERVER_NAME;
+        const isRemoteTarget =
+            originServer !== process.env.SERVER_NAME;
 
-        const newReport = new Report({
+        // Delegate DB logic to service
+        const savedReport = await createReportService({
             reporterId,
             reportedId,
             targetType,
@@ -37,12 +39,13 @@ export const createReport = async (req, res, next) => {
             targetOriginServer: originServer,
             isRemoteTarget
         });
-        const savedReport = await newReport.save();
+
         res.status(201).json(savedReport);
-    }catch(err){
+
+    } catch (err) {
         next(err);
     }
-}
+};
 
 export const getAllReports = async (req, res, next) => {
     try {

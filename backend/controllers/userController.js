@@ -1,6 +1,10 @@
 import User from "../models/User.js";
 import UserFollow from "../models/UserFollow.js";
 import { createError } from "../utils/error.js";
+import {
+  followUserService,
+  unfollowUserService
+} from "../services/userService.js";
 
 
 // Federation need to be added
@@ -56,7 +60,6 @@ export const followUser = async (req, res, next) => {
     }
 
     const targetOriginServer = parts[1];
-
     const isRemoteUser = targetOriginServer !== process.env.SERVER_NAME;
 
     if (isRemoteUser) {
@@ -69,32 +72,12 @@ export const followUser = async (req, res, next) => {
       return next(createError(404, "User not found"));
     }
 
-    const followStatus = await UserFollow.findOne({
-      followerFederatedId: userId,
-      followingFederatedId: targetFederatedId
-    });
-
-    if (followStatus) {
-      return next(createError(400, "You are already following this user"));
-    }
-
-    const newFollow = new UserFollow({
-      followerFederatedId: userId,
-      followingFederatedId: targetFederatedId,
-      serverName: req.user.serverName,
-      followerOriginServer: req.user.serverName,
-      followingOriginServer: targetOriginServer
-    });
-
-    await newFollow.save();
-    await User.findOneAndUpdate(
-      { federatedId: userId },
-      { $inc: { followingCount: 1 } }
-    );
-
-    await User.findOneAndUpdate(
-      { federatedId: targetFederatedId },
-      { $inc: { followersCount: 1 } }
+    // Delegate DB logic to service
+    await followUserService(
+      userId,
+      targetFederatedId,
+      req.user.serverName,
+      targetOriginServer
     );
 
     res.status(200).json({
@@ -126,34 +109,11 @@ export const unfollowUser = async (req, res, next) => {
     const targetOriginServer = parts[1];
     const isRemoteUser = targetOriginServer !== process.env.SERVER_NAME;
 
-    // Block remote unfollow (Phase 1)
     if (isRemoteUser) {
       return next(createError(403, "Remote unfollow forwarding not implemented yet"));
     }
 
-    const followStatus = await UserFollow.findOne({
-      followerFederatedId: userId,
-      followingFederatedId: targetFederatedId
-    });
-
-    if (!followStatus) {
-      return next(createError(400, "You are not following this user"));
-    }
-
-    await UserFollow.findOneAndDelete({
-      followerFederatedId: userId,
-      followingFederatedId: targetFederatedId
-    });
-
-    await User.findOneAndUpdate(
-      { federatedId: userId },
-      { $inc: { followingCount: -1 } }
-    );
-
-    await User.findOneAndUpdate(
-      { federatedId: targetFederatedId },
-      { $inc: { followersCount: -1 } }
-    );
+    await unfollowUserService(userId, targetFederatedId);
 
     res.status(200).json({
       success: true,

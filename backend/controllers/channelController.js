@@ -1,6 +1,10 @@
 import { createError } from "../utils/error.js";
 import Channel from "../models/Channel.js";
 import ChannelFollow from "../models/ChannelFollow.js";
+import {
+  followChannelService,
+  unFollowChannelService
+} from "../services/channelService.js";
 
 
 export const createChannel = async (req, res, next) => {
@@ -180,59 +184,62 @@ export const updateChannelRules = async (req, res, next) => {
 export const followChannel = async (req, res, next) => {
     try {
         const channelName = req.params.channelName;
-        const channel = await Channel.findOne({ name: channelName, serverName: req.user.serverName });
+
+        const channel = await Channel.findOne({
+            name: channelName,
+            serverName: req.user.serverName
+        });
+
         if (!channel) {
             return next(createError(404, "Channel not found"));
         }
+
         if (channel.isRemote) {
             return next(createError(403, "Cannot modify remote channel"));
         }
-        const userFederatedId = req.user.federatedId;
-        const existingFollow = await ChannelFollow.findOne({ userFederatedId: userFederatedId, channelFederatedId: channel.federatedId });
-        if (existingFollow !== null) {
-            return next(createError(400, "You are already following this channel"));
-        }
-        const newFollow = new ChannelFollow({
-            userFederatedId: userFederatedId,
-            channelFederatedId: channel.federatedId,
-            channelName: channel.name,
-            serverName: channel.serverName,
-            userOriginServer: req.user.serverName,
-            channelOriginServer: channel.originServer
-        });
-        await newFollow.save();
-        channel.followersCount += 1;
-        await channel.save();
+
+        // Delegate DB logic to service layer
+        await followChannelService(req.user.federatedId, channel);
+
         res.status(200).json({
             success: true,
             message: `You are now following the channel: ${channel.name}`
         });
+
     } catch (err) {
         next(err);
     }
-}
+};
 
 export const unFollowChannel = async (req, res, next) => {
-    const channelName = req.params.channelName;
-    const channel = await Channel.findOne({ name: channelName , serverName: req.user.serverName });
-    if (!channel) {
-        return next(createError(404, "Channel not found"));
+    try {
+        const channelName = req.params.channelName;
+
+        const channel = await Channel.findOne({
+            name: channelName,
+            serverName: req.user.serverName
+        });
+
+        if (!channel) {
+            return next(createError(404, "Channel not found"));
+        }
+
+        if (channel.isRemote) {
+            return next(createError(403, "Cannot modify remote channel"));
+        }
+
+        // Delegate DB logic to service layer
+        await unFollowChannelService(req.user.federatedId, channel);
+
+        res.status(200).json({
+            success: true,
+            message: `You have unfollowed the channel: ${channel.name}`
+        });
+
+    } catch (err) {
+        next(err);
     }
-    if (channel.isRemote) {
-        return next(createError(403, "Cannot modify remote channel"));
-    }
-    const userFederatedId = req.user.federatedId;
-    const existingFollow = await ChannelFollow.findOneAndDelete({ userFederatedId: userFederatedId, channelFederatedId: channel.federatedId });
-    if (existingFollow === null) {
-        return next(createError(400, "You are not following this channel"));
-    }
-    channel.followersCount = Math.max(0, channel.followersCount - 1);
-    await channel.save();
-    res.status(200).json({
-        success: true,
-        message: `You have unfollowed the channel: ${channel.name}`
-    });
-}
+};
 
 export const checkFollowStatus = async (req, res, next) => {
     const channelName = req.params.channelName;
