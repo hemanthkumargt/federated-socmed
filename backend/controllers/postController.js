@@ -6,10 +6,18 @@ import User from "../models/User.js";
 
 export const createPost = async (req, res, next) => {
   try {
-    const { description, image, isChannelPost, channelName } = req.body;
+    const { description, image, images, isChannelPost, channelName } = req.body;
 
     if (!description || description.trim() === "") {
       return next(createError(400, "Post description is required"));
+    }
+
+    // handle images - support both single image and array
+    let imageList = [];
+    if (images && Array.isArray(images)) {
+      imageList = images.slice(0, 4); // max 4
+    } else if (image) {
+      imageList = [image];
     }
 
     const isUserPost = !isChannelPost;
@@ -48,10 +56,11 @@ export const createPost = async (req, res, next) => {
     // ===== CREATE POST =====
     const newPost = new Post({
       description: description.trim(),
-      image: image || null,
+      image: imageList.length > 0 ? imageList[0] : null,
+      images: imageList,
 
       isUserPost,
-      userDisplayName: isUserPost ? req.user.displayName : null,
+      userDisplayName: isUserPost || isChannelPost ? req.user.displayName : null,
 
       isChannelPost: !!isChannelPost,
       channelName: isChannelPost ? channelName : null,
