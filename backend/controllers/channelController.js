@@ -66,24 +66,70 @@ export const deleteChannel = async (req, res, next) => {
     }
 }
 
+import { sendFederationEvent } from "../services/federationService.js";
+
 export const getChannel = async (req, res, next) => {
-    try {
-        const channelName = req.params.channelName;
-        const channel = await Channel.findOne({
-            name: channelName,
-            serverName: req.user.serverName
-            });
-        if (!channel) {
-            return next(createError(404, "Channel not found"));
-        }
-        res.status(200).json({
-            success: true,
-            channel
-        });
-    } catch (err) {
-        next(err);
+  try {
+
+    const searchInput = req.params.channelName;
+
+    // 🟢 Case 1: No '@' → local fuzzy search (top 5)
+    if (!searchInput.includes("@")) {
+
+      const channels = await Channel.find({
+        name: { $regex: searchInput, $options: "i" },
+        serverName: process.env.SERVER_NAME
+      })
+      .limit(5);
+
+      return res.status(200).json({
+        success: true,
+        channels
+      });
     }
-}
+
+    // 🔵 Case 2: Contains '@'
+    const parts = searchInput.split("@");
+
+    if (parts.length !== 2) {
+      return next(createError(400, "Invalid channel format"));
+    }
+
+    const name = parts[0];
+    const targetServer = parts[1];
+
+    // 🟢 If belongs to current server → local search
+    if (targetServer === process.env.SERVER_NAME) {
+
+      const channels = await Channel.find({
+        name: { $regex: name, $options: "i" },
+        serverName: process.env.SERVER_NAME
+      })
+      .limit(5);
+
+      return res.status(200).json({
+        success: true,
+        channels
+      });
+    }
+
+    // 🔵 True federated search
+    const remoteResult = await sendFederationEvent({
+      type: "SEARCH_CHANNEL",
+      actorFederatedId: req.user.federatedId,
+      objectFederatedId: searchInput,
+      data: { query: name }
+    });
+
+    return res.status(200).json({
+      success: true,
+      channels: remoteResult
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const getAllChannels = async (req, res, next) => {
     try {
@@ -182,63 +228,145 @@ export const updateChannelRules = async (req, res, next) => {
 // User actions on channels (follow/unfollow) 
 
 export const followChannel = async (req, res, next) => {
-    try {
-        const channelName = req.params.channelName;
+  try {
 
-        const channel = await Channel.findOne({
-            name: channelName,
-            serverName: req.user.serverName
-        });
+    const channelInput = req.params.channelName;
 
-        if (!channel) {
-            return next(createError(404, "Channel not found"));
-        }
+    // 🟢 CASE 1: No '@' → Local channel
+    if (!channelInput.includes("@")) {
 
-        if (channel.isRemote) {
-            return next(createError(403, "Cannot modify remote channel"));
-        }
+      const channel = await Channel.findOne({
+        name: channelInput,
+        serverName: process.env.SERVER_NAME
+      });
 
-        // Delegate DB logic to service layer
-        await followChannelService(req.user.federatedId, channel);
+      if (!channel) {
+        return next(createError(404, "Channel not found"));
+      }
 
-        res.status(200).json({
-            success: true,
-            message: `You are now following the channel: ${channel.name}`
-        });
+      await followChannelService(req.user.federatedId, channel);
 
-    } catch (err) {
-        next(err);
+      return res.status(200).json({
+        success: true,
+        message: `You are now following the channel: ${channel.name}`
+      });
     }
+
+    // 🔵 CASE 2: Contains '@' → Federated channel
+    const parts = channelInput.split("@");
+
+    if (parts.length !== 2) {
+      return next(createError(400, "Invalid channel format"));
+    }
+
+    const name = parts[0];
+    const targetServer = parts[1];
+
+    // If it belongs to this server → treat as local
+    if (targetServer === process.env.SERVER_NAME) {
+
+      const channel = await Channel.findOne({
+        name,
+        serverName: process.env.SERVER_NAME
+      });
+
+      if (!channel) {
+        return next(createError(404, "Channel not found"));
+      }
+
+      await followChannelService(req.user.federatedId, channel);
+
+      return res.status(200).json({
+        success: true,
+        message: `You are now following the channel: ${channel.name}`
+      });
+    }
+
+    // 🔵 TRUE REMOTE CASE
+    const remoteResponse = await sendFederationEvent({
+      type: "FOLLOW_CHANNEL",
+      actorFederatedId: req.user.federatedId,
+      objectFederatedId: channelInput
+    });
+
+    return res.status(200).json({
+      remoteResponse
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const unFollowChannel = async (req, res, next) => {
-    try {
-        const channelName = req.params.channelName;
+  try {
 
-        const channel = await Channel.findOne({
-            name: channelName,
-            serverName: req.user.serverName
-        });
+    const channelInput = req.params.channelName;
 
-        if (!channel) {
-            return next(createError(404, "Channel not found"));
-        }
+    // 🟢 Local case (no @)
+    if (!channelInput.includes("@")) {
 
-        if (channel.isRemote) {
-            return next(createError(403, "Cannot modify remote channel"));
-        }
+      const channel = await Channel.findOne({
+        name: channelInput,
+        serverName: process.env.SERVER_NAME
+      });
 
-        // Delegate DB logic to service layer
-        await unFollowChannelService(req.user.federatedId, channel);
+      if (!channel) {
+        return next(createError(404, "Channel not found"));
+      }
 
-        res.status(200).json({
-            success: true,
-            message: `You have unfollowed the channel: ${channel.name}`
-        });
+      await unFollowChannelService(req.user.federatedId, channel);
 
-    } catch (err) {
-        next(err);
+      return res.status(200).json({
+        success: true,
+        message: `You have unfollowed the channel: ${channel.name}`
+      });
     }
+
+    // 🔵 Contains @ → federated logic
+    const parts = channelInput.split("@");
+
+    if (parts.length !== 2) {
+      return next(createError(400, "Invalid channel format"));
+    }
+
+    const name = parts[0];
+    const targetServer = parts[1];
+
+    // If belongs to this server → treat as local
+    if (targetServer === process.env.SERVER_NAME) {
+
+      const channel = await Channel.findOne({
+        name,
+        serverName: process.env.SERVER_NAME
+      });
+
+      if (!channel) {
+        return next(createError(404, "Channel not found"));
+      }
+
+      await unFollowChannelService(req.user.federatedId, channel);
+
+      return res.status(200).json({
+        success: true,
+        message: `You have unfollowed the channel: ${channel.name}`
+      });
+    }
+
+    // 🔵 True remote case
+    const remoteResponse = await sendFederationEvent({
+      type: "UNFOLLOW_CHANNEL",
+      actorFederatedId: req.user.federatedId,
+      objectFederatedId: channelInput
+    });
+
+    return res.status(200).json({
+      remoteResponse
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const checkFollowStatus = async (req, res, next) => {
