@@ -382,6 +382,14 @@ body {
   background: none;
 }
 
+.dropdown-item.follow-item {
+  color: #6366f1;
+}
+
+.dropdown-item.follow-item:hover {
+  background: #eef2ff;
+}
+
 .post-content {
   font-size: 14px;
   line-height: 1.6;

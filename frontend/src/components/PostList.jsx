@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiThumbsUp, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2 } from 'react-icons/fi';
+import { FiThumbsUp, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiUserPlus, FiUserMinus } from 'react-icons/fi';
 
 const API_BASE_URL = "http://localhost:5000/api";
 
-const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
+const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [followingList, setFollowingList] = useState([]);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -19,7 +20,26 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
     }
   }, []);
 
-  // Close menu when clicking outside
+  // fetch who the current user follows
+  useEffect(() => {
+    const fetchFollowing = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_BASE_URL}/user/following`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          setFollowingList(data.following.map(u => u.federatedId));
+        }
+      } catch (err) {
+        console.error('Error fetching following list:', err);
+      }
+    };
+    fetchFollowing();
+  }, []);
+
+  // close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -61,11 +81,69 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
     }
   };
 
+  // figure out the federatedId of a post's author from the post's federatedId
+  // post federatedId format: "displayName@server/post/timestamp"
+  const getAuthorFederatedId = (post) => {
+    if (!post.federatedId) return null;
+    const parts = post.federatedId.split('/post/');
+    return parts[0] || null;
+  };
+
+  const handleFollow = async (post) => {
+    const authorFedId = getAuthorFederatedId(post);
+    if (!authorFedId) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/user/${encodeURIComponent(authorFedId)}/follow`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFollowingList([...followingList, authorFedId]);
+        setOpenMenuId(null);
+        if (onFollowChanged) onFollowChanged();
+      } else {
+        alert(data.message || 'Failed to follow user');
+      }
+    } catch (err) {
+      console.error('Error following user:', err);
+    }
+  };
+
+  const handleUnfollow = async (post) => {
+    const authorFedId = getAuthorFederatedId(post);
+    if (!authorFedId) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/user/${encodeURIComponent(authorFedId)}/follow`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFollowingList(followingList.filter(id => id !== authorFedId));
+        setOpenMenuId(null);
+        if (onFollowChanged) onFollowChanged();
+      } else {
+        alert(data.message || 'Failed to unfollow user');
+      }
+    } catch (err) {
+      console.error('Error unfollowing user:', err);
+    }
+  };
+
   const isOwnPost = (post) => {
     if (!currentUser) return false;
-    // Check if the post's federatedId contains the user's federatedId
     return post.federatedId?.includes(currentUser.federatedId) ||
       post.userDisplayName === currentUser.displayName;
+  };
+
+  const isFollowing = (post) => {
+    const authorFedId = getAuthorFederatedId(post);
+    return authorFedId ? followingList.includes(authorFedId) : false;
   };
 
   const formatTime = (date) => {
@@ -94,7 +172,9 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
       <div className="empty-state">
         {activeTimeline === 'federated'
           ? 'Federated timeline is empty'
-          : 'No posts yet. Be the first to post!'}
+          : activeTimeline === 'home'
+            ? 'No posts yet. Follow some users to see their posts here!'
+            : 'No posts yet. Be the first to post!'}
       </div>
     );
   }
@@ -128,7 +208,21 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
                     </button>
                   )}
                   {!isOwnPost(post) && (
-                    <div className="dropdown-item disabled">No actions available</div>
+                    isFollowing(post) ? (
+                      <button
+                        className="dropdown-item"
+                        onClick={() => handleUnfollow(post)}
+                      >
+                        <FiUserMinus /> Unfollow {post.userDisplayName}
+                      </button>
+                    ) : (
+                      <button
+                        className="dropdown-item follow-item"
+                        onClick={() => handleFollow(post)}
+                      >
+                        <FiUserPlus /> Follow {post.userDisplayName}
+                      </button>
+                    )
                   )}
                 </div>
               )}
@@ -176,3 +270,4 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
 };
 
 export default PostList;
+

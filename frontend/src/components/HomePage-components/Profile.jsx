@@ -10,6 +10,8 @@ function Profile() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   const getUserData = () => {
     const user = localStorage.getItem('user');
@@ -68,8 +70,37 @@ function Profile() {
     }
   };
 
+  // fetch real follower and following counts
+  const fetchSocialCounts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const [followersRes, followingRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/user/followers`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${API_BASE_URL}/user/following`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      const followersData = await followersRes.json();
+      const followingData = await followingRes.json();
+
+      if (followersData.success) {
+        setFollowersCount(followersData.followers.length);
+      }
+      if (followingData.success) {
+        setFollowingCount(followingData.following.length);
+      }
+    } catch (err) {
+      console.error('Error fetching social counts:', err);
+    }
+  };
+
   useEffect(() => {
     fetchUserPosts();
+    fetchSocialCounts();
   }, []);
 
   const handleLikePost = async (postId) => {
@@ -127,11 +158,11 @@ function Profile() {
             <span className="stat-label">Posts</span>
           </div>
           <div className="stat">
-            <span className="stat-number">0</span> {/*to add later*/}
+            <span className="stat-number">{followersCount}</span>
             <span className="stat-label">Followers</span>
           </div>
           <div className="stat">
-            <span className="stat-number">0</span> {/*to add later*/}
+            <span className="stat-number">{followingCount}</span>
             <span className="stat-label">Following</span>
           </div>
         </div>
@@ -150,6 +181,7 @@ function Profile() {
               onLike={handleLikePost}
               activeTimeline="profile"
               onDeletePost={(postId) => setPosts(posts.filter(p => p._id !== postId))}
+              onFollowChanged={fetchSocialCounts}
             />
           )}
         </div>
