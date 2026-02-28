@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import ServerHeader from '../components/ServerHeader';
 import ServerList from '../components/ServerList';
-import { servers, categories as initialCategories } from '../data/data';
+import { servers as staticServers, categories as initialCategories } from '../data/data';
 
 const pageStyles = {
     '--bg-main': '#17171c',
@@ -22,23 +23,52 @@ const pageStyles = {
 
 function Home() {
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [dynamicServers, setDynamicServers] = useState([]);
 
-    // Calculate counts dynamically based on servers list
+    useEffect(() => {
+        const fetchServers = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/api/servers');
+                if (res.data && res.data.servers) {
+                    const mappedServers = res.data.servers.map(server => ({
+                        id: server._id,
+                        name: server.name,
+                        category: server.category || 'general',
+                        description: server.description,
+                        enabled: server.isActive !== false,
+                        users: 'Dynamic',
+                        image: null,
+                        url: server.url
+                    }));
+                    setDynamicServers(mappedServers);
+                }
+            } catch (err) {
+                console.error("Failed to load real-time servers", err);
+            }
+        };
+        fetchServers();
+    }, []);
+
+    const combinedServers = useMemo(() => {
+        return [...dynamicServers, ...staticServers];
+    }, [dynamicServers]);
+
+    // Calculate counts dynamically based on combined servers list
     const categoriesWithCounts = useMemo(() => {
         return initialCategories.map(cat => {
             let count = 0;
             if (cat.id === 'all') {
-                count = servers.length;
+                count = combinedServers.length;
             } else {
-                count = servers.filter(s => s.category === cat.id).length;
+                count = combinedServers.filter(s => s.category.toLowerCase() === cat.id.toLowerCase()).length;
             }
             return { ...cat, count };
         });
-    }, []);
+    }, [combinedServers]);
 
     const filteredServers = selectedCategory === 'all'
-        ? servers
-        : servers.filter(server => server.category === selectedCategory);
+        ? combinedServers
+        : combinedServers.filter(server => server.category.toLowerCase() === selectedCategory.toLowerCase());
 
     return (
         <div style={pageStyles}>
