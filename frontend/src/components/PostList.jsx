@@ -14,6 +14,10 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
   const [lightboxImages, setLightboxImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  // Comments state
+  const [expandedComments, setExpandedComments] = useState({});
+  const [commentText, setCommentText] = useState({});
+
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
@@ -137,6 +141,57 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
       }
     } catch (err) {
       console.error('Error unfollowing user:', err);
+    }
+  };
+
+  const toggleComments = (postId) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const handleCommentChange = (postId, text) => {
+    setCommentText(prev => ({
+      ...prev,
+      [postId]: text
+    }));
+  };
+
+  const handleAddComment = async (post) => {
+    const text = commentText[post._id];
+    if (!text || !text.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/posts/comment/${post._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: text.trim() })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setCommentText(prev => ({ ...prev, [post._id]: '' }));
+
+        // update local post state to show the new comment immediately
+        const newComment = {
+          displayName: currentUser?.displayName || 'Me',
+          content: text.trim(),
+          createdAt: new Date().toISOString()
+        };
+
+        if (!Array.isArray(post.comments)) {
+          post.comments = [];
+        }
+        post.comments.push(newComment);
+      }
+    } catch (err) {
+      console.error('Error adding comment:', err);
     }
   };
 
@@ -291,7 +346,7 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
                   <span className="count">{post.likeCount || post.likes}</span>
                 )}
               </button>
-              <button className="post-action">
+              <button className="post-action" onClick={() => toggleComments(post._id)}>
                 <FiMessageCircle className="action-icon" />
                 <span>Comment</span>
                 {((post.comments && post.comments.length > 0) || (typeof post.comments === 'number' && post.comments > 0)) && (
@@ -306,6 +361,52 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
                 {post.shares > 0 && <span className="count">{post.shares}</span>}
               </button>
             </div>
+
+            {/* Comments Section */}
+            {expandedComments[post._id] && (
+              <div className="comments-section">
+                <div className="comment-input-area">
+                  <div className="user-avatar small">
+                    {getInitials(currentUser?.displayName || '')}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Write a comment..."
+                    value={commentText[post._id] || ''}
+                    onChange={(e) => handleCommentChange(post._id, e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') handleAddComment(post);
+                    }}
+                  />
+                  <button
+                    className="post-btn small-btn"
+                    onClick={() => handleAddComment(post)}
+                    disabled={!commentText[post._id]?.trim()}
+                  >
+                    Post
+                  </button>
+                </div>
+
+                {Array.isArray(post.comments) && post.comments.length > 0 && (
+                  <div className="comments-list">
+                    {post.comments.map((comment, idx) => (
+                      <div key={idx} className="comment">
+                        <div className="user-avatar tiny">
+                          {getInitials(comment.displayName || 'A')}
+                        </div>
+                        <div className="comment-content">
+                          <div className="comment-header">
+                            <span className="comment-author">{comment.displayName || 'Anonymous'}</span>
+                            <span className="comment-time">{formatTime(comment.createdAt || new Date())}</span>
+                          </div>
+                          <div className="comment-text">{comment.content}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
