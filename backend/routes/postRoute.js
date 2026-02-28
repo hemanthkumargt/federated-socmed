@@ -7,7 +7,7 @@ const router = express.Router();
 router.get("/",verifyToken,getPosts)
 router.post("/",verifyToken, createPost);
 router.delete('/:id',verifyToken,deletePost);
-router.put('/like/:id',verifyToken,likePost);
-router.put('/comment/:id',verifyToken,createComment);
+router.put('/like/',verifyToken,likePost);
+router.put('/comment/',verifyToken,createComment);
 
 export default router

@@ -7,6 +7,7 @@ import {
   toggleLikePostService,
   addCommentService
 } from "../services/postService.js";
+import { sendFederationEvent } from "../services/federationService.js";
 
 
 export const createPost = async (req, res, next) => {
@@ -116,17 +117,32 @@ export const deletePost = async (req, res, next) => {
 
 export const likePost = async (req, res, next) => {
   try {
-    const postId = req.params.id;
+    const federatedId = req.body.postFederatedId;
     const userId = req.user.federatedId;
 
-    const post = await Post.findById(postId);
+    const [serverPart] = federatedId.split("/post/");
+    const postServer = serverPart.split("@")[1];
+
+    if (postServer !== process.env.SERVER_NAME) {
+      // Remote post - send federation event
+      const remoteResponse = await sendFederationEvent({
+        type: "LIKE_POST",
+        actorFederatedId: userId,
+        objectFederatedId: federatedId
+      });
+      return res.status(200).json({
+        success: true,
+        remoteResponse
+      });
+    }
+
+    const post = await Post.findOne({ federatedId });
 
     if (!post) {
       return next(createError(404, "Post not found"));
     }
-
     if (post.isRemote) {
-      return next(createError(403, "Remote like forwarding not implemented yet"));
+      return next(createError(403, "Cannot modify remote content"));
     }
 
     // Delegate like/unlike logic to service
@@ -161,24 +177,37 @@ export const getPosts = async (req, res, next) => {
 
 export const createComment = async (req, res, next) => {
   try {
-    const postId = req.params.id;
+    const [channelServer, postPath] = req.body.postFederatedId.split("/post/");
+    const [channel, server] = channelServer.split("@");
     const { content } = req.body;
 
     if (!content || content.trim() === "") {
       return next(createError(400, "Comment content is required"));
     }
 
-    const post = await Post.findById(postId);
+    if (server !== process.env.SERVER_NAME) {
+      // If the post is remote, forward the comment to the remote server
+      const remoteResponse = await sendFederationEvent({
+        type: "COMMENT_POST",
+        actorFederatedId: req.user.federatedId,
+        objectFederatedId: req.body.postFederatedId,
+        data: {
+          content: content.trim()
+        }
+      });
 
-    if (!post) {
-      return next(createError(404, "Post not found"));
-    }
-
-    if (post.isRemote) {
-      return next(createError(403, "Remote comment forwarding not implemented yet"));
+      return res.status(200).json({
+        success: true,
+        remoteResponse
+      });
     }
 
     // Generate federated comment ID in controller
+    const post = await Post.findOne({ federatedId: req.body.postFederatedId });
+    if (!post) {
+      return next(createError(404, "Post not found"));
+    }
+    
     const commentFederatedId =
       `${req.user.federatedId}/comment/${Date.now()}`;
 
@@ -193,6 +222,7 @@ export const createComment = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      commentFederatedId
     });
 
   } catch (err) {

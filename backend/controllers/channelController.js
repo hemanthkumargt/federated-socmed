@@ -5,6 +5,7 @@ import {
   followChannelService,
   unFollowChannelService
 } from "../services/channelService.js";
+import { sendFederationEvent } from "../services/federationService.js";
 
 
 export const createChannel = async (req, res, next) => {
@@ -66,7 +67,6 @@ export const deleteChannel = async (req, res, next) => {
     }
 }
 
-import { sendFederationEvent } from "../services/federationService.js";
 
 export const getChannel = async (req, res, next) => {
   try {
