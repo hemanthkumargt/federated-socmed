@@ -1,4 +1,6 @@
+import Post from "../models/Post.js";
 import Report from "../models/Report.js";
+import User from "../models/User.js";
 import { createError } from "../utils/error.js";
 
 /**
@@ -24,6 +26,24 @@ export const createReportService = async ({
   if (!["user", "post"].includes(targetType)) {
     throw createError(400, "Invalid target type");
   }
+
+
+  if (targetType === "post" && !isRemoteTarget) {
+    const post = await Post.findOne({ federatedId: reportedId });
+
+    if (!post) {
+      throw createError(404, "Post not found");
+    }
+  }
+
+  if (targetType === "user") {
+    const user = await User.findOne({ federatedId: reportedId });
+
+    if (!user) {
+      throw createError(404, "User not found");
+    }
+  }
+
 
   const newReport = new Report({
     reporterId,

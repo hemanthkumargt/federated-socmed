@@ -1,50 +1,63 @@
 import Report from "../models/Report.js";
 import { createError } from "../utils/error.js";
+import { sendFederationEvent } from "../services/federationService.js";
+import { createReportService } from "../services/reportService.js";
 
 //remote Forwarding required to be implemented
     
 export const createReport = async (req, res, next) => {
-    try {
-        const reporterId = req.user.federatedId;
-        const { reportedId, targetType, reason, description } = req.body;
+  try {
+    const reporterId = req.user.federatedId;
+    const { reportedId, targetType, reason, description } = req.body;
 
-        // Basic validation
-        if (!reportedId || !targetType || !reason) {
-            return next(createError(400, "Missing required fields"));
-        }
+    const beforeSlash = reportedId.split("/")[0]; // cricket@food OR username@food
+    const originServer = beforeSlash.split("@")[1];
 
-        if (!["user", "post"].includes(targetType)) {
-            return next(createError(400, "Invalid target type"));
-        }
+    if (!originServer) {
+      return next(createError(400, "Invalid reportedId format"));
+    }
 
-        const parts = reportedId.split("@");
+    const isRemoteTarget = originServer !== process.env.SERVER_NAME;
 
-        if (parts.length < 2) {
-            return next(createError(400, "Invalid reportedId format"));
-        }
+    const savedReport = await createReportService({
+      reporterId,
+      reportedId,
+      targetType,
+      reason,
+      description,
+      targetOriginServer: originServer,
+      isRemoteTarget
+    });
 
-        const afterAt = parts[1];
-        const originServer = afterAt.split("/")[0];
 
-        const isRemoteTarget =
-            originServer !== process.env.SERVER_NAME;
-
-        // Delegate DB logic to service
-        const savedReport = await createReportService({
-            reporterId,
-            reportedId,
+    if (isRemoteTarget) {
+      try {
+        await sendFederationEvent({
+          type: "REPORT_CONTENT",
+          actorFederatedId: reporterId,
+          objectFederatedId: reportedId,
+          data: {
             targetType,
             reason,
-            description,
-            targetOriginServer: originServer,
-            isRemoteTarget
+            description
+          }
         });
-
-        res.status(201).json(savedReport);
-
-    } catch (err) {
-        next(err);
+      } catch (err) {
+        console.error("Federation report failed:", err.message);
+      }
     }
+
+
+
+    return res.status(201).json({
+      success: true,
+      message: "Report submitted successfully",
+      reportId: savedReport._id
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const getAllReports = async (req, res, next) => {

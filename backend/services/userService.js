@@ -10,6 +10,10 @@ import { createError } from "../utils/error.js";
  */
 export const followUserService = async (followerFederatedId,followingFederatedId,followerOriginServer,followingOriginServer) => {
 
+  if (followerFederatedId === followingFederatedId) {
+    throw createError(400, "You cannot follow yourself");
+  }
+
   const existing = await UserFollow.findOne({
     followerFederatedId,
     followingFederatedId
@@ -51,6 +55,10 @@ export const unfollowUserService = async (
   followerFederatedId,
   followingFederatedId
 ) => {
+
+  if (followerFederatedId === followingFederatedId) {
+    throw createError(400, "You cannot unfollow yourself");
+  }
 
   const followStatus = await UserFollow.findOne({
     followerFederatedId,

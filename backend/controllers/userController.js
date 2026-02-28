@@ -5,6 +5,7 @@ import {
   followUserService,
   unfollowUserService
 } from "../services/userService.js";
+import { sendFederationEvent } from "../services/federationService.js";
 
 
 // Federation need to be added
@@ -49,10 +50,6 @@ export const followUser = async (req, res, next) => {
     const targetFederatedId = req.params.federatedId;
     const userId = req.user.federatedId;
 
-    if (targetFederatedId === userId) {
-      return next(createError(400, "You cannot follow yourself"));
-    }
-
     const parts = targetFederatedId.split("@");
 
     if (parts.length < 2) {
@@ -62,8 +59,21 @@ export const followUser = async (req, res, next) => {
     const targetOriginServer = parts[1];
     const isRemoteUser = targetOriginServer !== process.env.SERVER_NAME;
 
-    if (isRemoteUser) {
-      return next(createError(403, "Remote follow forwarding not implemented yet"));
+    if (targetOriginServer !== process.env.SERVER_NAME) {
+      const response = await sendFederationEvent({
+        type: "FOLLOW_USER",
+        actorFederatedId: userId,
+        objectFederatedId: targetFederatedId
+      });
+
+      if (!response.success) {
+        return next(createError(500, "Failed to send follow event to remote server"));
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Follow event sent to remote server"
+      });
     }
 
     const targetUser = await User.findOne({ federatedId: targetFederatedId });
@@ -96,10 +106,6 @@ export const unfollowUser = async (req, res, next) => {
     const targetFederatedId = req.params.federatedId;
     const userId = req.user.federatedId;
 
-    if (targetFederatedId === userId) {
-      return next(createError(400, "You cannot unfollow yourself"));
-    }
-
     const parts = targetFederatedId.split("@");
 
     if (parts.length < 2) {
@@ -107,10 +113,21 @@ export const unfollowUser = async (req, res, next) => {
     }
 
     const targetOriginServer = parts[1];
-    const isRemoteUser = targetOriginServer !== process.env.SERVER_NAME;
 
-    if (isRemoteUser) {
-      return next(createError(403, "Remote unfollow forwarding not implemented yet"));
+    if (targetOriginServer !== process.env.SERVER_NAME) {
+      const response = await sendFederationEvent({
+        type: "UNFOLLOW_USER",
+        actorFederatedId: userId,
+        objectFederatedId: targetFederatedId
+      });
+
+      if (!response.success) {
+        return next(createError(500, "Failed to send unfollow event to remote server"));
+      }
+      return res.status(200).json({
+        success: true,
+        message: "Unfollow event sent to remote server"
+      });
     }
 
     await unfollowUserService(userId, targetFederatedId);
