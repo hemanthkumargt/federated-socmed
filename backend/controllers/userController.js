@@ -1,5 +1,7 @@
 import User from "../models/User.js";
 import UserFollow from "../models/UserFollow.js";
+import Post from "../models/Post.js";
+import bcrypt from "bcryptjs";
 import { createError } from "../utils/error.js";
 
 
@@ -172,3 +174,100 @@ export const getMyFollowing = async (req, res, next) => {
 };
 
 
+// update profile fields (displayName, email, dob)
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.federatedId;
+    const { displayName, email, dob } = req.body;
+
+    const updateFields = {};
+    if (displayName) updateFields.displayName = displayName;
+    if (email) updateFields.email = email;
+    if (dob) updateFields.dob = new Date(dob);
+
+    const updatedUser = await User.findOneAndUpdate(
+      { federatedId: userId },
+      { $set: updateFields },
+      { new: true, select: '-password' }
+    );
+
+    if (!updatedUser) {
+      return next(createError(404, "User not found"));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// change password
+export const changePassword = async (req, res, next) => {
+  try {
+    const userId = req.user.federatedId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return next(createError(400, "Current password and new password are required"));
+    }
+
+    if (newPassword.length < 8) {
+      return next(createError(400, "New password must be at least 8 characters"));
+    }
+
+    const user = await User.findOne({ federatedId: userId });
+    if (!user) return next(createError(404, "User not found"));
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return next(createError(400, "Current password is incorrect"));
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await User.findOneAndUpdate(
+      { federatedId: userId },
+      { $set: { password: hashedPassword } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully"
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// delete account and all associated data on local server
+export const deleteAccount = async (req, res, next) => {
+  try {
+    const userId = req.user.federatedId;
+
+    // delete user's posts on local server
+    await Post.deleteMany({ federatedId: { $regex: `^${userId}` } });
+
+    // remove follow relationships
+    await UserFollow.deleteMany({
+      $or: [
+        { followerFederatedId: userId },
+        { followingFederatedId: userId }
+      ]
+    });
+
+    // delete the user
+    await User.findOneAndDelete({ federatedId: userId });
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully"
+    });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -181,7 +181,7 @@ const ChannelPage = () => {
                   <img src={currentChannel.image} alt="" />
                 </div>
               )}
-              <div className={currentChannel?.image ? "hero-text on-dark" : "hero-text on-light"}>
+              <div className={currentChannel?.image ? "hero-text on-light" : "hero-text on-dark"}>
                 <div className={currentChannel?.image ? "channel-meta on-dark" : "channel-meta on-light"}>
                   {currentChannel?.visibility === 'public'
                     ? 'Public Community'

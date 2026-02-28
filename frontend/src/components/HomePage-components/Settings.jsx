@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../Layout';
 import {
   FiUser,
   FiMail,
   FiLock,
-  FiPhone,
   FiCalendar,
   FiEye,
   FiEyeOff,
   FiTrash2,
-  FiLogOut,
-  FiShield,
-  FiGlobe,
   FiSave,
   FiAlertTriangle
 } from 'react-icons/fi';
 import '../../styles/Settings.css';
+
+const API_BASE_URL = "http://localhost:5000/api";
 
 function Settings() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('account');
   const [showPassword, setShowPassword] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
 
   const getUserData = () => {
     const user = localStorage.getItem('user');
@@ -39,21 +39,12 @@ function Settings() {
   const user = getUserData();
 
   const [formData, setFormData] = useState({
-    username: user?.displayName || '',
-    name: user?.displayName || '',
+    displayName: user?.displayName || '',
     email: user?.email || '',
-    phone: '',
-    dob: '',
+    dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
-  });
-
-  const [visibility, setVisibility] = useState({
-    profile: 'public',
-    posts: 'public',
-    email: 'friends',
-    phone: 'private'
   });
 
   const handleInputChange = (e) => {
@@ -62,48 +53,120 @@ function Settings() {
       ...prev,
       [name]: value
     }));
+    // clear message when user starts editing
+    setMessage({ text: '', type: '' });
   };
 
-  const handleVisibilityChange = (field, value) => {
-    setVisibility(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const showMsg = (text, type = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: '', type: '' }), 4000);
   };
 
-  const handleSaveProfile = () => {
-    console.log('Saving profile:', formData);
-    // API call would go here
-    alert('Profile updated successfully!');
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/user/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          displayName: formData.displayName,
+          email: formData.email,
+          dob: formData.dob
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // update localStorage with new user data
+        const updatedUser = { ...user, ...data.user };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        showMsg('Profile updated successfully!');
+      } else {
+        showMsg(data.message || 'Failed to update profile', 'error');
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      showMsg('Network error. Please try again.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSavePassword = () => {
+  const handleSavePassword = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      showMsg('Passwords do not match!', 'error');
       return;
     }
-    console.log('Changing password');
-    // API call would go here
-    alert('Password changed successfully!');
-    setFormData(prev => ({
-      ...prev,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }));
+    if (formData.newPassword.length < 8) {
+      showMsg('Password must be at least 8 characters', 'error');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/user/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        showMsg('Password changed successfully!');
+        setFormData(prev => ({
+          ...prev,
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        }));
+      } else {
+        showMsg(data.message || 'Failed to change password', 'error');
+      }
+    } catch (err) {
+      console.error('Error changing password:', err);
+      showMsg('Network error. Please try again.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSavePrivacy = () => {
-    console.log('Saving privacy settings:', visibility);
-    // API call would go here
-    alert('Privacy settings updated!');
-  };
+  const handleDeleteAccount = async () => {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/user/account`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-  const handleDeleteAccount = () => {
-    console.log('Deleting account');
-    // API call would go here
-    alert('Account deletion initiated. You will receive a confirmation email.');
-    setShowDeleteModal(false);
+      const data = await res.json();
+      if (data.success) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/auth');
+      } else {
+        showMsg(data.message || 'Failed to delete account', 'error');
+      }
+    } catch (err) {
+      console.error('Error deleting account:', err);
+      showMsg('Network error. Please try again.', 'error');
+    } finally {
+      setSaving(false);
+      setShowDeleteModal(false);
+    }
   };
 
   const handleLogout = () => {
@@ -120,6 +183,12 @@ function Settings() {
           <p>Manage your account settings and preferences</p>
         </div>
 
+        {message.text && (
+          <div className={`settings-message ${message.type}`}>
+            {message.text}
+          </div>
+        )}
+
         <div className="settings-content">
           <div className="settings-tabs">
             <button
@@ -134,12 +203,6 @@ function Settings() {
             >
               <FiLock /> Security
             </button>
-            <button
-              className={`settings-tab ${activeTab === 'privacy' ? 'active' : ''}`}
-              onClick={() => setActiveTab('privacy')}
-            >
-              <FiShield /> Privacy
-            </button>
           </div>
 
 
@@ -151,30 +214,16 @@ function Settings() {
                 <div className="form-group">
                   <label>
                     <FiUser className="label-icon" />
-                    Username
+                    Display Name
                   </label>
                   <input
                     type="text"
-                    name="username"
-                    value={formData.username}
+                    name="displayName"
+                    value={formData.displayName}
                     onChange={handleInputChange}
-                    placeholder="Enter username"
+                    placeholder="Enter display name"
                   />
-                  <small>This is your unique identifier on the platform</small>
-                </div>
-
-                <div className="form-group">
-                  <label>
-                    <FiUser className="label-icon" />
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter your full name"
-                  />
+                  <small>This is shown on your posts and profile</small>
                 </div>
 
                 <div className="form-group">
@@ -204,8 +253,21 @@ function Settings() {
                   />
                 </div>
 
-                <button className="btn-primary" onClick={handleSaveProfile}>
-                  <FiSave /> Save Changes
+                <button className="btn-primary" onClick={handleSaveProfile} disabled={saving}>
+                  <FiSave /> {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+
+              <div className="settings-section danger-zone">
+                <h2>Danger Zone</h2>
+                <p className="danger-text">
+                  <FiAlertTriangle /> Once you delete your account, there is no going back. Please be certain.
+                </p>
+                <button
+                  className="btn-danger"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  <FiTrash2 /> Delete Account
                 </button>
               </div>
             </div>
@@ -269,97 +331,8 @@ function Settings() {
                   />
                 </div>
 
-                <button className="btn-primary" onClick={handleSavePassword}>
-                  <FiSave /> Update Password
-                </button>
-              </div>
-            </div>
-          )}
-
-
-          {activeTab === 'privacy' && (
-            <div className="settings-panel">
-              <div className="settings-section">
-                <h2>Visibility Settings</h2>
-                <p className="section-description">
-                  Control who can see your information and content
-                </p>
-
-                <div className="visibility-group">
-                  <label>
-                    <FiGlobe className="label-icon" />
-                    Profile Visibility
-                  </label>
-                  <select
-                    value={visibility.profile}
-                    onChange={(e) => handleVisibilityChange('profile', e.target.value)}
-                  >
-                    <option value="public">Public - Anyone can view</option>
-                    <option value="friends">Friends Only</option>
-                    <option value="private">Private - Only me</option>
-                  </select>
-                </div>
-
-                <div className="visibility-group">
-                  <label>
-                    <FiGlobe className="label-icon" />
-                    Post Visibility
-                  </label>
-                  <select
-                    value={visibility.posts}
-                    onChange={(e) => handleVisibilityChange('posts', e.target.value)}
-                  >
-                    <option value="public">Public</option>
-                    <option value="friends">Friends Only</option>
-                    <option value="private">Private</option>
-                  </select>
-                </div>
-
-                <div className="visibility-group">
-                  <label>
-                    <FiMail className="label-icon" />
-                    Email Visibility
-                  </label>
-                  <select
-                    value={visibility.email}
-                    onChange={(e) => handleVisibilityChange('email', e.target.value)}
-                  >
-                    <option value="public">Public</option>
-                    <option value="friends">Friends Only</option>
-                    <option value="private">Private</option>
-                  </select>
-                </div>
-
-                <div className="visibility-group">
-                  <label>
-                    <FiPhone className="label-icon" />
-                    Phone Visibility
-                  </label>
-                  <select
-                    value={visibility.phone}
-                    onChange={(e) => handleVisibilityChange('phone', e.target.value)}
-                  >
-                    <option value="public">Public</option>
-                    <option value="friends">Friends Only</option>
-                    <option value="private">Private</option>
-                  </select>
-                </div>
-
-                <button className="btn-primary" onClick={handleSavePrivacy}>
-                  <FiSave /> Save Privacy Settings
-                </button>
-              </div>
-
-              <div className="settings-section danger-zone">
-                <h2>Danger Zone</h2>
-                <p className="danger-text">
-                  <FiAlertTriangle /> Once you delete your account, there is no going back. Please be certain.
-                </p>
-                <button
-                  className="btn-danger"
-                  onClick={() => setShowDeleteModal(true)}
-                >
-                  <FiTrash2 /> Delete Account
+                <button className="btn-primary" onClick={handleSavePassword} disabled={saving}>
+                  <FiSave /> {saving ? 'Updating...' : 'Update Password'}
                 </button>
               </div>
             </div>
@@ -398,6 +371,7 @@ function Settings() {
               </button>
               <button
                 className="btn-danger"
+                disabled={saving}
                 onClick={() => {
                   const input = document.getElementById('deleteConfirm');
                   if (input.value === 'DELETE') {
@@ -407,7 +381,7 @@ function Settings() {
                   }
                 }}
               >
-                <FiTrash2 /> Delete My Account
+                <FiTrash2 /> {saving ? 'Deleting...' : 'Delete My Account'}
               </button>
             </div>
           </div>

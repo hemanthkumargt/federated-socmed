@@ -17,7 +17,7 @@ app.use(cors({
   credentials: true
 }))
 
-app.use(express.json())
+app.use(express.json({ limit: '50mb' })) // to allow image upload sizes larger than the default 100kb previously
 
 mongoose.connect(process.env.MONGO_URL).then(() => {
   console.log("Connected to MongoDB")

@@ -10,6 +10,9 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
   const [currentUser, setCurrentUser] = useState(null);
   const [followingList, setFollowingList] = useState([]);
   const menuRef = useRef(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -182,99 +185,162 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
   }
 
   return (
-    <div className="posts-feed">
-      {posts.map((post) => (
-        <div key={post._id} className="post">
-          <div className="post-header">
-            <div className="post-author">
-              <div className="user-avatar">
-                {getInitials(post.userDisplayName || post.author)}
-              </div>
-              <div>
-                <div className="author-name author-link" onClick={() => {
-                  const authorFedId = getAuthorFederatedId(post);
-                  if (authorFedId && currentUser && authorFedId === currentUser.federatedId) {
-                    navigate('/profile');
-                  } else if (authorFedId) {
-                    navigate(`/user/${encodeURIComponent(authorFedId)}`);
-                  }
-                }}>{post.userDisplayName || post.author || 'Anonymous'}</div>
-                <div className="post-time">{formatTime(post.createdAt)}</div>
-              </div>
-            </div>
-            <div className="post-menu-container" ref={openMenuId === post._id ? menuRef : null}>
-              <button className="post-menu" onClick={() => toggleMenu(post._id)}>
-                <FiMoreHorizontal />
-              </button>
-              {openMenuId === post._id && (
-                <div className="post-dropdown-menu">
-                  {isOwnPost(post) && (
-                    <button
-                      className="dropdown-item delete-item"
-                      onClick={() => handleDelete(post._id)}
-                    >
-                      <FiTrash2 /> Delete Post
-                    </button>
-                  )}
-                  {!isOwnPost(post) && (
-                    isFollowing(post) ? (
-                      <button
-                        className="dropdown-item"
-                        onClick={() => handleUnfollow(post)}
-                      >
-                        <FiUserMinus /> Unfollow {post.userDisplayName}
-                      </button>
-                    ) : (
-                      <button
-                        className="dropdown-item follow-item"
-                        onClick={() => handleFollow(post)}
-                      >
-                        <FiUserPlus /> Follow {post.userDisplayName}
-                      </button>
-                    )
-                  )}
+    <>
+      <div className="posts-feed">
+        {posts.map((post) => (
+          <div key={post._id} className="post">
+            <div className="post-header">
+              <div className="post-author">
+                <div className="user-avatar">
+                  {getInitials(post.userDisplayName || post.author)}
                 </div>
+                <div>
+                  <div className="author-name author-link" onClick={() => {
+                    const authorFedId = getAuthorFederatedId(post);
+                    if (authorFedId && currentUser && authorFedId === currentUser.federatedId) {
+                      navigate('/profile');
+                    } else if (authorFedId) {
+                      navigate(`/user/${encodeURIComponent(authorFedId)}`);
+                    }
+                  }}>{post.userDisplayName || post.author || 'Anonymous'}</div>
+                  <div className="post-meta-row">
+                    <div className="post-time">{formatTime(post.createdAt)}</div>
+                    {post.isChannelPost && post.channelName && (
+                      <span
+                        className="channel-tag"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/channels/${encodeURIComponent(post.channelName)}`);
+                        }}
+                      >
+                        #{post.channelName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="post-menu-container" ref={openMenuId === post._id ? menuRef : null}>
+                <button className="post-menu" onClick={() => toggleMenu(post._id)}>
+                  <FiMoreHorizontal />
+                </button>
+                {openMenuId === post._id && (
+                  <div className="post-dropdown-menu">
+                    {isOwnPost(post) && (
+                      <button
+                        className="dropdown-item delete-item"
+                        onClick={() => handleDelete(post._id)}
+                      >
+                        <FiTrash2 /> Delete Post
+                      </button>
+                    )}
+                    {!isOwnPost(post) && (
+                      isFollowing(post) ? (
+                        <button
+                          className="dropdown-item"
+                          onClick={() => handleUnfollow(post)}
+                        >
+                          <FiUserMinus /> Unfollow {post.userDisplayName}
+                        </button>
+                      ) : (
+                        <button
+                          className="dropdown-item follow-item"
+                          onClick={() => handleFollow(post)}
+                        >
+                          <FiUserPlus /> Follow {post.userDisplayName}
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="post-content">{post.description || post.content}</div>
+
+            {(() => {
+              const postImages = post.images && post.images.length > 0
+                ? post.images
+                : post.image ? [post.image] : [];
+              if (postImages.length === 0) return null;
+              return (
+                <div className={`post-images count-${Math.min(postImages.length, 4)}`}>
+                  {postImages.slice(0, 4).map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt=""
+                      onClick={() => {
+                        setLightboxImages(postImages);
+                        setLightboxIndex(idx);
+                        setLightboxOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
+
+            <div className="post-footer">
+              <button
+                className="post-action"
+                onClick={() => onLike(post._id)}
+              >
+                <FiThumbsUp className="action-icon" />
+                <span>Like</span>
+                {(post.likeCount > 0 || post.likes > 0) && (
+                  <span className="count">{post.likeCount || post.likes}</span>
+                )}
+              </button>
+              <button className="post-action">
+                <FiMessageCircle className="action-icon" />
+                <span>Comment</span>
+                {((post.comments && post.comments.length > 0) || (typeof post.comments === 'number' && post.comments > 0)) && (
+                  <span className="count">
+                    {Array.isArray(post.comments) ? post.comments.length : post.comments}
+                  </span>
+                )}
+              </button>
+              <button className="post-action">
+                <FiShare2 className="action-icon" />
+                <span>Share</span>
+                {post.shares > 0 && <span className="count">{post.shares}</span>}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Image Lightbox */}
+      {
+        lightboxOpen && (
+          <div className="lightbox-overlay" onClick={() => setLightboxOpen(false)}>
+            <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+              <button className="lightbox-close" onClick={() => setLightboxOpen(false)}>✕</button>
+              <img src={lightboxImages[lightboxIndex]} alt="" className="lightbox-image" />
+              {lightboxImages.length > 1 && (
+                <>
+                  <button
+                    className="lightbox-nav lightbox-prev"
+                    onClick={() => setLightboxIndex((lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length)}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="lightbox-nav lightbox-next"
+                    onClick={() => setLightboxIndex((lightboxIndex + 1) % lightboxImages.length)}
+                  >
+                    ›
+                  </button>
+                  <div className="lightbox-counter">
+                    {lightboxIndex + 1} / {lightboxImages.length}
+                  </div>
+                </>
               )}
             </div>
           </div>
-
-          <div className="post-content">{post.description || post.content}</div>
-
-          {post.image && (
-            <div className="post-images">
-              <img src={post.image} alt="" />
-            </div>
-          )}
-
-          <div className="post-footer">
-            <button
-              className="post-action"
-              onClick={() => onLike(post._id)}
-            >
-              <FiThumbsUp className="action-icon" />
-              <span>Like</span>
-              {(post.likeCount > 0 || post.likes > 0) && (
-                <span className="count">{post.likeCount || post.likes}</span>
-              )}
-            </button>
-            <button className="post-action">
-              <FiMessageCircle className="action-icon" />
-              <span>Comment</span>
-              {((post.comments && post.comments.length > 0) || (typeof post.comments === 'number' && post.comments > 0)) && (
-                <span className="count">
-                  {Array.isArray(post.comments) ? post.comments.length : post.comments}
-                </span>
-              )}
-            </button>
-            <button className="post-action">
-              <FiShare2 className="action-icon" />
-              <span>Share</span>
-              {post.shares > 0 && <span className="count">{post.shares}</span>}
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
+        )
+      }
+    </>
   );
 };
 

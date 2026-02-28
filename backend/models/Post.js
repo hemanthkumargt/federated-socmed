@@ -11,30 +11,36 @@ const postSchema = new mongoose.Schema(
     },
 
     image: {
-      type: String, 
+      type: String,
       default: null
+    },
+
+    images: {
+      type: [String],
+      default: [],
+      validate: [arr => arr.length <= 4, 'Maximum 4 images allowed']
     },
 
     /* ========= POST TYPE ========= */
 
     isUserPost: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true
     },
 
     userDisplayName: {
-        type: String,
-        default: null
+      type: String,
+      default: null
     },
 
     isChannelPost: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false
     },
 
     channelName: {
-        type: String,
-        default: null
+      type: String,
+      default: null
     },
 
 
