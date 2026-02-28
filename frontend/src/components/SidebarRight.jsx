@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 
 const SidebarRight = () => {
   const [followedChannels, setFollowedChannels] = useState([]);
+  const [topUsers, setTopUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const API_BASE_URL = "http://localhost:5000/api";
@@ -70,8 +71,24 @@ const SidebarRight = () => {
     }
   };
 
+  const fetchTopUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/user/top`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.users)) {
+        setTopUsers(data.users);
+      }
+    } catch (err) {
+      console.error('Error fetching top users:', err);
+    }
+  };
+
   useEffect(() => {
     fetchFollowedChannels();
+    fetchTopUsers();
   }, []);
 
   return (
@@ -112,47 +129,32 @@ const SidebarRight = () => {
       <div className="widget">
         <h3>Popular Users</h3>
 
-        <div className="contact-item">
-          <div className="contact-avatar online">
-            <FiUser />
-          </div>
-          <span>Mark Larsen</span>
-        </div>
-
-        <div className="contact-item">
-          <div className="contact-avatar online">
-            <FiUser />
-          </div>
-          <span>Ethan Reynolds</span>
-        </div>
-
-        <div className="contact-item">
-          <div className="contact-avatar online">
-            <FiUser />
-          </div>
-          <span>Ava Thompson</span>
-        </div>
-
-        <div className="contact-item">
-          <div className="contact-avatar online">
-            <FiUser />
-          </div>
-          <span>Haarper Mitchell</span>
-        </div>
-
-        <div className="contact-item">
-          <div className="contact-avatar online">
-            <FiUser />
-          </div>
-          <span>Pablo Morandi</span>
-        </div>
-
-        <div className="contact-item">
-          <div className="contact-avatar online">
-            <FiUser />
-          </div>
-          <span>Isabel Hughes</span>
-        </div>
+        {topUsers.length === 0 ? (
+          <div className="empty-state">No users yet.</div>
+        ) : (
+          topUsers.map((u) => (
+            <Link
+              key={u._id}
+              to={`/user/${encodeURIComponent(u.federatedId)}`}
+              className="contact-item"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              <div className="contact-avatar online">
+                {u.avatarUrl ? (
+                  <img src={u.avatarUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <FiUser />
+                )}
+              </div>
+              <span>{u.displayName}</span>
+              {u.followersCount > 0 && (
+                <span style={{ marginLeft: 'auto', fontSize: '0.75rem', opacity: 0.6 }}>
+                  <FiUsers style={{ fontSize: '0.7rem', marginRight: 2 }} />{u.followersCount}
+                </span>
+              )}
+            </Link>
+          ))
+        )}
       </div>
 
     </aside>

@@ -17,6 +17,24 @@ export const getAllProfiles = async (req, res, next) => {
   }
 }
 
+export const getTopUsers = async (req, res, next) => {
+  try {
+    const users = await User.find(
+      {},
+      { displayName: 1, avatarUrl: 1, federatedId: 1, followersCount: 1 }
+    )
+      .sort({ followersCount: -1 })
+      .limit(5);
+
+    res.status(200).json({
+      success: true,
+      users
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export const getUserProfile = async (req, res, next) => {
   try {
     const federatedId = req.params.federatedId;
