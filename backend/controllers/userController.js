@@ -49,7 +49,7 @@ export const followUser = async (req, res, next) => {
     const newFollow = new UserFollow({
       followerFederatedId: userId,
       followingFederatedId: targetFederatedId,
-      serverName: req.user.server
+      serverName: req.user.serverName
     });
     await newFollow.save();
 

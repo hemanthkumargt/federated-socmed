@@ -10,7 +10,7 @@ export const createChannel = async (req, res, next) => {
             return next(createError(400, "Missing required fields: name, description, and rules are required"));
         }
 
-        const federatedId = `${name}@${req.user.server}`;
+        const federatedId = `${name}@${req.user.serverName}`;
         const createdBy = req.user.federatedId;
         const newChannel = new Channel({
             name,
@@ -19,8 +19,8 @@ export const createChannel = async (req, res, next) => {
             visibility,
             image: image || null,
             federatedId,
-            originServer: req.user.server,
-            serverName: req.user.server,
+            originServer: req.user.serverName,
+            serverName: req.user.serverName,
             createdBy: createdBy,
             followersCount: 0
         });

@@ -15,7 +15,7 @@ export const verifyToken = (req, res, next) => {
     req.user = {
       federatedId: decoded.federatedId,
       displayName: decoded.displayName,
-      server: decoded.serverName,
+      serverName: decoded.serverName,
       image: decoded.image,
       role: decoded.role
     };

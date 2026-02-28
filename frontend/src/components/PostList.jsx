@@ -164,13 +164,13 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/posts/comment/${post._id}`, {
+      const res = await fetch(`${API_BASE_URL}/posts/comment/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ content: text.trim() })
+        body: JSON.stringify({ postFederatedId: post.federatedId, content: text.trim() })
       });
 
       const data = await res.json();
@@ -338,7 +338,7 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
             <div className="post-footer">
               <button
                 className="post-action"
-                onClick={() => onLike(post._id)}
+                onClick={() => onLike(post.federatedId)}
               >
                 <FiThumbsUp className="action-icon" />
                 <span>Like</span>

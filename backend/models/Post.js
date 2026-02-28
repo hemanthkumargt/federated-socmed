@@ -117,6 +117,16 @@ const postSchema = new mongoose.Schema(
             maxlength: 500
           },
 
+          commentFederatedId: {
+            type: String,
+            default: null
+          },
+
+          originServer: {
+            type: String,
+            default: null
+          },
+
           createdAt: {
             type: Date,
             default: Date.now

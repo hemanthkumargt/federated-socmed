@@ -117,17 +117,21 @@ function UserProfile() {
         }
     };
 
-    const handleLikePost = async (postId) => {
+    const handleLikePost = async (postFederatedId) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_BASE_URL}/posts/like/${postId}`, {
+            const res = await fetch(`${API_BASE_URL}/posts/like/`, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ postFederatedId })
             });
             const data = await res.json();
             if (data.success) {
                 setPosts(posts.map(post =>
-                    post._id === postId
+                    post.federatedId === postFederatedId
                         ? { ...post, likeCount: data.likeCount, liked: data.liked }
                         : post
                 ));

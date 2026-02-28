@@ -77,22 +77,24 @@ function Home() {
     setFollowingPosts([newPost, ...followingPosts]);
   };
 
-  const handleLikePost = async (postId) => {
+  const handleLikePost = async (postFederatedId) => {
     try {
       const token = localStorage.getItem('token');
 
-      const res = await fetch(`${API_BASE_URL}/posts/like/${postId}`, {
+      const res = await fetch(`${API_BASE_URL}/posts/like/`, {
         method: 'PUT',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({ postFederatedId })
       });
 
       const data = await res.json();
 
       if (data.success) {
         const updateLike = post =>
-          post._id === postId
+          post.federatedId === postFederatedId
             ? { ...post, likeCount: data.likeCount, liked: data.liked }
             : post;
         setPosts(posts.map(updateLike));
