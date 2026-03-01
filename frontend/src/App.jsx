@@ -8,6 +8,7 @@ import Settings from './components/HomePage-components/Settings';
 import LandingPage from './pages/LandingPage';
 import ServerHome from './pages/serverhome';
 import Admin from './pages/Admin';
+import SearchPage from './pages/SearchPage';
 import './styles/app.css';
 
 const isAuthenticated = () => {
@@ -59,6 +60,11 @@ function App() {
             <Route path="/settings" element={
                 <ProtectedRoute>
                     <Settings />
+                </ProtectedRoute>
+            } />
+            <Route path="/search" element={
+                <ProtectedRoute>
+                    <SearchPage />
                 </ProtectedRoute>
             } />
             <Route path="/landing" element={<LandingPage />} />
