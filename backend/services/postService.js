@@ -11,6 +11,7 @@ export const createPostService = async ({
   image,
   isUserPost,
   userDisplayName,
+  authorFederatedId,
   isChannelPost,
   channelName,
   federatedId,
@@ -22,7 +23,8 @@ export const createPostService = async ({
     image: image || null,
 
     isUserPost,
-    userDisplayName: isUserPost ? userDisplayName : null,
+    userDisplayName: userDisplayName,
+    authorFederatedId: authorFederatedId,
 
     isChannelPost: !!isChannelPost,
     channelName: isChannelPost ? channelName : null,

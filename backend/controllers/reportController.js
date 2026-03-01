@@ -33,7 +33,7 @@ export const createReport = async (req, res, next) => {
     if (isRemoteTarget) {
       try {
         await sendFederationEvent({
-          type: "REPORT_CONTENT",
+          type: "REPORT",
           actorFederatedId: reporterId,
           objectFederatedId: reportedId,
           data: {

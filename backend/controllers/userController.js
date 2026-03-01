@@ -7,8 +7,19 @@ import {
 } from "../services/userService.js";
 import { sendFederationEvent } from "../services/federationService.js";
 
-
-// Federation need to be added
+/**
+ * Parses a federatedId and determines if the target lives on this server.
+ * Returns { targetOriginServer, isRemote } or throws a 400 error.
+ */
+const resolveFollowTarget = (targetFederatedId, next) => {
+  const parts = targetFederatedId.split("@");
+  if (parts.length < 2) {
+    throw createError(400, "Invalid federatedId format");
+  }
+  const targetOriginServer = parts[1];
+  const isRemote = targetOriginServer !== process.env.SERVER_NAME;
+  return { targetOriginServer, isRemote };
+};
 
 export const getAllProfiles = async (req, res, next) => {
   try {
@@ -50,16 +61,9 @@ export const followUser = async (req, res, next) => {
     const targetFederatedId = req.params.federatedId;
     const userId = req.user.federatedId;
 
-    const parts = targetFederatedId.split("@");
+    const { targetOriginServer, isRemote } = resolveFollowTarget(targetFederatedId);
 
-    if (parts.length < 2) {
-      return next(createError(400, "Invalid federatedId format"));
-    }
-
-    const targetOriginServer = parts[1];
-    const isRemoteUser = targetOriginServer !== process.env.SERVER_NAME;
-
-    if (targetOriginServer !== process.env.SERVER_NAME) {
+    if (isRemote) {
       const response = await sendFederationEvent({
         type: "FOLLOW_USER",
         actorFederatedId: userId,
@@ -77,12 +81,10 @@ export const followUser = async (req, res, next) => {
     }
 
     const targetUser = await User.findOne({ federatedId: targetFederatedId });
-
     if (!targetUser) {
       return next(createError(404, "User not found"));
     }
 
-    // Delegate DB logic to service
     await followUserService(
       userId,
       targetFederatedId,
@@ -106,15 +108,9 @@ export const unfollowUser = async (req, res, next) => {
     const targetFederatedId = req.params.federatedId;
     const userId = req.user.federatedId;
 
-    const parts = targetFederatedId.split("@");
+    const { isRemote } = resolveFollowTarget(targetFederatedId);
 
-    if (parts.length < 2) {
-      return next(createError(400, "Invalid federatedId format"));
-    }
-
-    const targetOriginServer = parts[1];
-
-    if (targetOriginServer !== process.env.SERVER_NAME) {
+    if (isRemote) {
       const response = await sendFederationEvent({
         type: "UNFOLLOW_USER",
         actorFederatedId: userId,

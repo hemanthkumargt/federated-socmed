@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import stringify from "fast-json-stable-stringify";
 
 /**
  * Verifies RSA SHA256 signature
@@ -12,7 +13,7 @@ export const verifySignature = (payload, signature, publicKey) => {
     const verify = crypto.createVerify("RSA-SHA256");
 
     // Important: stringify payload consistently
-    const payloadString = JSON.stringify(payload);
+    const payloadString = stringify(payload);
 
     verify.update(payloadString);
     verify.end();

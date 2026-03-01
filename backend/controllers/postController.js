@@ -64,6 +64,7 @@ export const createPost = async (req, res, next) => {
       image,
       isUserPost,
       userDisplayName: req.user.displayName,
+      authorFederatedId: req.user.federatedId,
       isChannelPost,
       channelName,
       federatedId: postFederatedId,
@@ -94,8 +95,9 @@ export const deletePost = async (req, res, next) => {
       return next(createError(403, "Cannot modify remote content"));
     }
 
+    // Use federatedId (stable) instead of displayName (mutable) for ownership check
     if (
-      post.userDisplayName !== req.user.displayName &&
+      post.authorFederatedId !== req.user.federatedId &&
       req.user.role !== "admin"
     ) {
       return next(createError(403, "Unauthorized action"));
@@ -207,7 +209,7 @@ export const createComment = async (req, res, next) => {
     if (!post) {
       return next(createError(404, "Post not found"));
     }
-    
+
     const commentFederatedId =
       `${req.user.federatedId}/comment/${Date.now()}`;
 

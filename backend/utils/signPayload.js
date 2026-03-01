@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createError } from "./error.js";
+import stringify from "fast-json-stable-stringify";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,8 +26,8 @@ export const signPayload = (payload) => {
   try {
     const sign = crypto.createSign("RSA-SHA256");
 
-    // IMPORTANT: Always stringify the exact same way
-    const payloadString = JSON.stringify(payload);
+    // IMPORTANT: Always stringify the exact same way with fast-json-stable-stringify
+    const payloadString = stringify(payload);
 
     sign.update(payloadString);
     sign.end();

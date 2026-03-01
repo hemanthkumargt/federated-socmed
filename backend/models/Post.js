@@ -11,7 +11,7 @@ const postSchema = new mongoose.Schema(
     },
 
     image: {
-      type: String, 
+      type: String,
       default: null
     },
 
@@ -23,23 +23,29 @@ const postSchema = new mongoose.Schema(
     /* ========= POST TYPE ========= */
 
     isUserPost: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true
     },
 
     userDisplayName: {
-        type: String,
-        default: null
+      type: String,
+      default: null
+    },
+
+    // Stable ownership reference — used for authorization checks
+    authorFederatedId: {
+      type: String,
+      default: null
     },
 
     isChannelPost: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false
     },
 
     channelName: {
-        type: String,
-        default: null
+      type: String,
+      default: null
     },
 
 

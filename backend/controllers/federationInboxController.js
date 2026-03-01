@@ -1,186 +1,139 @@
 import FederationEvent from "../models/FederationEvent.js";
-import TrustedServer from "../models/TrustedServer.js";
-import { verifySignature } from "../utils/verifySignature.js";
 import { createError } from "../utils/error.js";
+import crypto from "crypto";
 
 import { followUserService, unfollowUserService } from "../services/userService.js";
 import { followChannelService, unFollowChannelService } from "../services/channelService.js";
-import {createPostService , deletePostService, toggleLikePostService, addCommentService } from "../services/postService.js";
+import { toggleLikePostService, addCommentService } from "../services/postService.js";
 import { createReportService } from "../services/reportService.js";
 
 import User from "../models/User.js";
 import Channel from "../models/Channel.js";
 import Post from "../models/Post.js";
 
-// export const federationInbox = async (req, res, next) => {
-//   try {
-//     const { payload, signature, senderServer } = req.body;
-
-//     if (!payload || !signature || !senderServer) {
-//       return next(createError(400, "Invalid federation request format"));
-//     }
-
-//     // 🔐 1. Verify sender is trusted
-//     const trusted = await TrustedServer.findOne({
-//       serverName: senderServer,
-//       isActive: true
-//     });
-
-//     if (!trusted) {
-//       return next(createError(403, "Untrusted server"));
-//     }
-
-//     // 🔐 2. Verify digital signature
-//     const isValid = verifySignature(payload, signature, trusted.publicKey);
-
-//     if (!isValid) {
-//       return next(createError(403, "Invalid digital signature"));
-//     }
-
-//     // 🔁 3. Prevent duplicate event processing
-//     const existingEvent = await FederationEvent.findOne({
-//       eventId: payload.eventId
-//     });
-
-//     if (existingEvent) {
-//       return res.status(200).json({ message: "Event already processed" });
-//     }
-
-//     // 📝 4. Store event as pending
-//     const eventDoc = await FederationEvent.create({
-//       ...payload,
-//       direction: "incoming",
-//       senderServer,
-//       processingStatus: "pending"
-//     });
-
-//     // ⚙️ 5. Process event by type
-//     switch (payload.type) {
-
-//       case "FOLLOW_USER": {
-//         const targetUser = await User.findOne({
-//           federatedId: payload.object.federatedId
-//         });
-
-//         if (!targetUser) throw createError(404, "Target user not found");
-
-//         await followUserService(
-//           payload.actor.federatedId,
-//           payload.object.federatedId,
-//           payload.actor.server,
-//           process.env.SERVER_NAME
-//         );
-//         break;
-//       }
-
-//       case "UNFOLLOW_USER": {
-//         await unfollowUserService(
-//           payload.actor.federatedId,
-//           payload.object.federatedId
-//         );
-//         break;
-//       }
-
-//       case "FOLLOW_CHANNEL": {
-//         const channel = await Channel.findOne({
-//           federatedId: payload.object.federatedId
-//         });
-
-//         if (!channel) throw createError(404, "Channel not found");
-
-//         await followChannelService(payload.actor.federatedId, channel);
-//         break;
-//       }
-
-//       case "UNFOLLOW_CHANNEL": {
-//         const channel = await Channel.findOne({
-//           federatedId: payload.object.federatedId
-//         });
-
-//         if (!channel) throw createError(404, "Channel not found");
-
-//         await unFollowChannelService(payload.actor.federatedId, channel);
-//         break;
-//       }
-
-//       case "LIKE_POST": {
-//         const post = await Post.findOne({
-//           federatedId: payload.object.federatedId
-//         });
-
-//         if (!post) throw createError(404, "Post not found");
-
-//         await likePostService(payload.actor.federatedId, post);
-//         break;
-//       }
-
-//       case "COMMENT_POST": {
-//         const post = await Post.findOne({
-//           federatedId: payload.object.federatedId
-//         });
-
-//         if (!post) throw createError(404, "Post not found");
-
-//         await commentPostService(
-//           payload.actor,
-//           post,
-//           payload.data.content
-//         );
-//         break;
-//       }
-
-//       case "REPORT": {
-//         await createReportService({
-//           reporterId: payload.actor.federatedId,
-//           reportedId: payload.object.federatedId,
-//           targetType: payload.data.targetType,
-//           reason: payload.data.reason,
-//           description: payload.data.description,
-//           targetOriginServer: process.env.SERVER_NAME,
-//           isRemoteTarget: false
-//         });
-//         break;
-//       }
-
-//       default:
-//         throw createError(400, "Unsupported federation event type");
-//     }
-
-//     // ✅ 6. Mark as processed
-//     eventDoc.processingStatus = "processed";
-//     await eventDoc.save();
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Federation event processed"
-//     });
-
-//   } catch (err) {
-
-//     // ❌ If failure happens after event creation, mark as failed
-//     if (req.body?.payload?.eventId) {
-//       await FederationEvent.findOneAndUpdate(
-//         { eventId: req.body.payload.eventId },
-//         { processingStatus: "failed" }
-//       );
-//     }
-
-//     next(err);
-//   }
-// };
-
 export const federationInbox = async (req, res, next) => {
+  let eventDoc = null; // Tracked outside try so catch can reliably mark it as failed
   try {
+    const payload = req.body;
 
-    console.log("📩 Incoming Federation Event:", req.body);
+    // senderServer is set by verifyFederationRequest middleware on req.federation.
+    // Falls back to a top-level field when testing without the middleware enabled.
+    const senderServer = req.federation?.originServer;
+
+    if (!payload || !payload.type || !payload.eventId) {
+      return next(createError(400, "Invalid federation request: missing required payload fields"));
+    }
+
+    // 1. Prevent duplicate event processing (idempotency)
+    const existingEvent = await FederationEvent.findOne({ eventId: payload.eventId });
+    if (existingEvent) {
+      return res.status(200).json({ success: true, message: "Event already processed" });
+    }
+
+    // 2. Store event as incoming/pending for auditability
+    const eventDoc = await FederationEvent.create({
+      ...payload,
+      direction: "incoming",
+      senderServer: senderServer || payload.actor?.server || "unknown",
+      processingStatus: "pending"
+    });
+
+    // 3. Process event by type
+    switch (payload.type) {
+
+      case "FOLLOW_USER": {
+        const targetUser = await User.findOne({ federatedId: payload.object.federatedId });
+        if (!targetUser) throw createError(404, "Target user not found");
+
+        await followUserService(
+          payload.actor.federatedId,
+          payload.object.federatedId,
+          payload.actor.server,
+          process.env.SERVER_NAME
+        );
+        break;
+      }
+
+      case "UNFOLLOW_USER": {
+        await unfollowUserService(
+          payload.actor.federatedId,
+          payload.object.federatedId
+        );
+        break;
+      }
+
+      case "FOLLOW_CHANNEL": {
+        const channel = await Channel.findOne({ federatedId: payload.object.federatedId });
+        if (!channel) throw createError(404, "Channel not found");
+
+        await followChannelService(payload.actor.federatedId, channel);
+        break;
+      }
+
+      case "UNFOLLOW_CHANNEL": {
+        const channel = await Channel.findOne({ federatedId: payload.object.federatedId });
+        if (!channel) throw createError(404, "Channel not found");
+
+        await unFollowChannelService(payload.actor.federatedId, channel);
+        break;
+      }
+
+      case "LIKE_POST": {
+        const post = await Post.findOne({ federatedId: payload.object.federatedId });
+        if (!post) throw createError(404, "Post not found");
+
+        await toggleLikePostService(post, payload.actor.federatedId);
+        break;
+      }
+
+      case "COMMENT_POST": {
+        const post = await Post.findOne({ federatedId: payload.object.federatedId });
+        if (!post) throw createError(404, "Post not found");
+
+        await addCommentService(post, {
+          displayName: payload.data.displayName,
+          image: payload.data.image || null,
+          content: payload.data.content,
+          commentFederatedId: `${payload.actor.federatedId}/comment/${crypto.randomUUID()}`,
+          originServer: payload.actor.server
+        });
+        break;
+      }
+
+      case "REPORT": {
+        await createReportService({
+          reporterId: payload.actor.federatedId,
+          reportedId: payload.object.federatedId,
+          targetType: payload.data.targetType,
+          reason: payload.data.reason,
+          description: payload.data.description,
+          targetOriginServer: process.env.SERVER_NAME,
+          isRemoteTarget: false
+        });
+        break;
+      }
+
+      default:
+        throw createError(400, `Unsupported federation event type: ${payload.type}`);
+    }
+
+    // 4. Mark event as successfully processed
+    eventDoc.processingStatus = "processed";
+    await eventDoc.save();
 
     return res.status(200).json({
       success: true,
-      message: "Event received on " + process.env.SERVER_NAME,
-      Post : "federated post"
+      message: "Federation event processed"
     });
 
   } catch (err) {
+    // If the event document was created before the failure, mark it as failed.
+    // Using the reference directly avoids a DB lookup and handles the case
+    // where failure happened before eventDoc was created (it stays null).
+    if (eventDoc) {
+      eventDoc.processingStatus = "failed";
+      await eventDoc.save().catch(() => { }); // Don't mask the original error
+    }
     next(err);
   }
 };

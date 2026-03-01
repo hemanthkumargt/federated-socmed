@@ -36,7 +36,7 @@ export const createReportService = async ({
     }
   }
 
-  if (targetType === "user") {
+  if (targetType === "user" && !isRemoteTarget) {
     const user = await User.findOne({ federatedId: reportedId });
 
     if (!user) {

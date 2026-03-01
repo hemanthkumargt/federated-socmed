@@ -1,5 +1,6 @@
 import TrustedServer from "../models/TrustedServer.js";
 import crypto from "crypto";
+   import stringify from "fast-json-stable-stringify";
 
 export const verifyFederationRequest = async (req, res, next) => {
   try {
@@ -22,9 +23,9 @@ export const verifyFederationRequest = async (req, res, next) => {
 
     const publicKey = trustedServer.publicKey;
 
-    // Verify signature
+    // Verify signature using stable stringify
     const verify = crypto.createVerify("RSA-SHA256");
-    const payloadString = JSON.stringify(req.body);
+    const payloadString = stringify(req.body);
 
     verify.update(payloadString);
     verify.end();
