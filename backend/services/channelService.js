@@ -54,3 +54,13 @@ export const unFollowChannelService = async (actorFederatedId, channel) => {
   channel.followersCount = Math.max(0, channel.followersCount - 1);
   await channel.save();
 };
+
+/**
+ * Shared service for retrieving a channel's profile data.
+ * Used by channelController (local views) and federationFeedController (remote views).
+ */
+export const getChannelProfileService = async (federatedId) => {
+  const channel = await Channel.findOne({ federatedId });
+  if (!channel) throw createError(404, "Channel not found");
+  return channel;
+};

@@ -10,12 +10,15 @@ import {
 } from '../controllers/federationController.js';
 import { verifyFederationRequest } from '../middleware/verifyFederationRequest.js';
 import { federationInbox } from '../controllers/federationInboxController.js';
+import { verifyFederatedServer } from '../middleware/verifyFederatedServer.js';
+import { federationFeed } from '../controllers/federationFeedController.js';
 
 const router = Express.Router();
 
-// Public / Inbox
+// Public / Inbox / Feed
 router.get("/public-key", getPublicKey);
 router.post("/inbox", verifyFederationRequest, federationInbox);
+router.get("/feed", verifyFederatedServer, federationFeed);
 
 // Trusted Server Management (Admin Only)
 router.post("/trusted-servers", verifyToken, verifyAdmin, addTrustedServer);

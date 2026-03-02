@@ -6,7 +6,9 @@ import {
   unfollowUserService
 } from "../services/userService.js";
 import { sendFederationEvent } from "../services/federationService.js";
-
+import TrustedServer from "../models/TrustedServer.js";
+import axios from "axios";
+import { getUserProfileService } from "../services/userService.js";
 /**
  * Parses a federatedId and determines if the target lives on this server.
  * Returns { targetOriginServer, isRemote } or throws a 400 error.
@@ -40,17 +42,37 @@ export const getAllProfiles = async (req, res, next) => {
 export const getUserProfile = async (req, res, next) => {
   try {
     const federatedId = req.params.federatedId;
-    const user = await User.findOne(
-      { federatedId: federatedId },
-      { displayName: 1, avatarUrl: 1, federatedId: 1, followersCount: 1, followingCount: 1 }
-    );
-    if (!user) {
-      return next(createError(404, "User not found"));
+    const targetServer = federatedId.split("@")[1];
+
+    if (!targetServer) {
+      return next(createError(400, "Invalid federated ID format"));
     }
-    res.status(200).json({
-      success: true,
-      user
-    });
+
+    // ── 1. Local Profile ─────────────────────────────────────────────────────
+    if (targetServer === process.env.SERVER_NAME) {
+      const user = await getUserProfileService(federatedId);
+      return res.status(200).json({ success: true, user });
+    }
+
+    // ── 2. Remote Profile (Federated Search/View) ────────────────────────────
+    const trusted = await TrustedServer.findOne({ serverName: targetServer, isActive: true });
+    if (!trusted) {
+      return next(createError(403, `Server ${targetServer} is not trusted or offline`));
+    }
+
+    try {
+      const { data } = await axios.get(
+        `${trusted.serverUrl}/api/federation/feed?type=GET_PROFILE&federatedId=${federatedId}`,
+        {
+          headers: { "x-origin-server": process.env.SERVER_NAME },
+          timeout: 5000
+        }
+      );
+      return res.status(200).json(data);
+    } catch (error) {
+      return next(createError(502, "Failed to fetch remote user profile"));
+    }
+
   } catch (err) {
     next(err);
   }
@@ -64,19 +86,24 @@ export const followUser = async (req, res, next) => {
     const { targetOriginServer, isRemote } = resolveFollowTarget(targetFederatedId);
 
     if (isRemote) {
-      const response = await sendFederationEvent({
+      // 1. Write local record so THIS server knows userA follows userB@remote
+      await followUserService(
+        userId,
+        targetFederatedId,
+        req.user.serverName,
+        targetOriginServer
+      );
+
+      // 2. Notify the remote server
+      await sendFederationEvent({
         type: "FOLLOW_USER",
         actorFederatedId: userId,
         objectFederatedId: targetFederatedId
       });
 
-      if (!response.success) {
-        return next(createError(500, "Failed to send follow event to remote server"));
-      }
-
       return res.status(200).json({
         success: true,
-        message: "Follow event sent to remote server"
+        message: "User followed successfully"
       });
     }
 
@@ -111,18 +138,19 @@ export const unfollowUser = async (req, res, next) => {
     const { isRemote } = resolveFollowTarget(targetFederatedId);
 
     if (isRemote) {
-      const response = await sendFederationEvent({
+      // 1. Delete local record first
+      await unfollowUserService(userId, targetFederatedId);
+
+      // 2. Notify the remote server
+      await sendFederationEvent({
         type: "UNFOLLOW_USER",
         actorFederatedId: userId,
         objectFederatedId: targetFederatedId
       });
 
-      if (!response.success) {
-        return next(createError(500, "Failed to send unfollow event to remote server"));
-      }
       return res.status(200).json({
         success: true,
-        message: "Unfollow event sent to remote server"
+        message: "User unfollowed successfully"
       });
     }
 

@@ -1,9 +1,12 @@
 import { createError } from "../utils/error.js";
 import Channel from "../models/Channel.js";
 import ChannelFollow from "../models/ChannelFollow.js";
+import TrustedServer from "../models/TrustedServer.js";
+import axios from "axios";
 import {
   followChannelService,
-  unFollowChannelService
+  unFollowChannelService,
+  getChannelProfileService
 } from "../services/channelService.js";
 import { sendFederationEvent } from "../services/federationService.js";
 
@@ -88,17 +91,14 @@ export const deleteChannel = async (req, res, next) => {
 
 export const getChannel = async (req, res, next) => {
   try {
-
     const searchInput = req.params.channelName;
 
-    // 🟢 Case 1: No '@' → local fuzzy search (top 5)
+    // ── 0. Local Fuzzy Search (No '@' provided) ──────────────────────────────
     if (!searchInput.includes("@")) {
-
       const channels = await Channel.find({
         name: { $regex: searchInput, $options: "i" },
         serverName: process.env.SERVER_NAME
-      })
-        .limit(5);
+      }).limit(5);
 
       return res.status(200).json({
         success: true,
@@ -106,43 +106,34 @@ export const getChannel = async (req, res, next) => {
       });
     }
 
-    // 🔵 Case 2: Contains '@'
-    const parts = searchInput.split("@");
+    // ── Federated Search/View (Requires '@') ─────────────────────────────────
+    const { isLocal, targetServer } = resolveChannelTarget(searchInput);
 
-    if (parts.length !== 2) {
-      return next(createError(400, "Invalid channel format"));
+    // ── 1. Local Channel ─────────────────────────────────────────────────────
+    if (isLocal) {
+      const channel = await getChannelProfileService(searchInput);
+      return res.status(200).json({ success: true, channels: channel });
     }
 
-    const name = parts[0];
-    const targetServer = parts[1];
-
-    // 🟢 If belongs to current server → local search
-    if (targetServer === process.env.SERVER_NAME) {
-
-      const channels = await Channel.find({
-        name: { $regex: name, $options: "i" },
-        serverName: process.env.SERVER_NAME
-      })
-        .limit(5);
-
-      return res.status(200).json({
-        success: true,
-        channels
-      });
+    // ── 2. Remote Channel (Federated Search/View) ────────────────────────────
+    const trusted = await TrustedServer.findOne({ serverName: targetServer, isActive: true });
+    if (!trusted) {
+      return next(createError(403, `Server ${targetServer} is not trusted or offline`));
     }
 
-    // 🔵 True federated search
-    const remoteResult = await sendFederationEvent({
-      type: "SEARCH_CHANNEL",
-      actorFederatedId: req.user.federatedId,
-      objectFederatedId: searchInput,
-      data: { query: name }
-    });
-
-    return res.status(200).json({
-      success: true,
-      channels: remoteResult
-    });
+    try {
+      const { data } = await axios.get(
+        `${trusted.serverUrl}/api/federation/feed?type=GET_CHANNEL&federatedId=${searchInput}`,
+        {
+          headers: { "x-origin-server": process.env.SERVER_NAME },
+          timeout: 5000
+        }
+      );
+      // The frontend expects the result in a "channels" key (legacy naming)
+      return res.status(200).json({ success: true, channels: data.channel });
+    } catch (error) {
+      return next(createError(502, "Failed to fetch remote channel profile"));
+    }
 
   } catch (err) {
     next(err);
@@ -248,7 +239,7 @@ export const updateChannelRules = async (req, res, next) => {
 export const followChannel = async (req, res, next) => {
   try {
     const channelInput = req.params.channelName;
-    const { isLocal, name } = resolveChannelTarget(channelInput);
+    const { isLocal, name, targetServer } = resolveChannelTarget(channelInput);
 
     if (isLocal) {
       const channel = await Channel.findOne({
@@ -268,16 +259,42 @@ export const followChannel = async (req, res, next) => {
       });
     }
 
-    // Remote channel
-    const remoteResponse = await sendFederationEvent({
+    // Remote channel:
+    // 1. Check local DB FIRST to prevent unnecessary remote network requests
+    const channelFederatedId = channelInput; // e.g. "cricket@sports"
+    const existingFollow = await ChannelFollow.findOne({
+      userFederatedId: req.user.federatedId,
+      channelFederatedId
+    });
+
+    if (existingFollow) {
+      return next(createError(400, "Already following channel"));
+    }
+
+    // 2. Notify the remote server FIRST
+    const response = await sendFederationEvent({
       type: "FOLLOW_CHANNEL",
       actorFederatedId: req.user.federatedId,
       objectFederatedId: channelInput
     });
 
+    if (response && (response.queued || response.skipped)) {
+      return next(createError(502, "Remote server is offline or unreachable. Follow failed."));
+    }
+
+    // 3. Write a local ChannelFollow so this server knows about the relationship
+    await ChannelFollow.create({
+      userFederatedId: req.user.federatedId,
+      channelFederatedId,
+      channelName: name,
+      serverName: req.user.serverName,
+      userOriginServer: req.user.serverName,
+      channelOriginServer: targetServer
+    });
+
     return res.status(200).json({
       success: true,
-      remoteResponse
+      message: `You are now following channel: ${name} on ${targetServer}`
     });
 
   } catch (err) {
@@ -288,7 +305,7 @@ export const followChannel = async (req, res, next) => {
 export const unFollowChannel = async (req, res, next) => {
   try {
     const channelInput = req.params.channelName;
-    const { isLocal, name } = resolveChannelTarget(channelInput);
+    const { isLocal, name, targetServer } = resolveChannelTarget(channelInput);
 
     if (isLocal) {
       const channel = await Channel.findOne({
@@ -308,16 +325,38 @@ export const unFollowChannel = async (req, res, next) => {
       });
     }
 
-    // Remote channel
-    const remoteResponse = await sendFederationEvent({
+    // Remote channel:
+    // 1. Check local DB FIRST to prevent unnecessary remote network requests
+    const channelFederatedId = channelInput;
+    const existingFollow = await ChannelFollow.findOne({
+      userFederatedId: req.user.federatedId,
+      channelFederatedId
+    });
+
+    if (!existingFollow) {
+      return next(createError(400, "Not following channel"));
+    }
+
+    // 2. Notify the remote server FIRST
+    const response = await sendFederationEvent({
       type: "UNFOLLOW_CHANNEL",
       actorFederatedId: req.user.federatedId,
       objectFederatedId: channelInput
     });
 
+    if (response && (response.queued || response.skipped)) {
+      return next(createError(502, "Remote server is offline or unreachable. Unfollow failed."));
+    }
+
+    // 3. Delete local ChannelFollow record ONLY if federation succeeded
+    await ChannelFollow.findOneAndDelete({
+      userFederatedId: req.user.federatedId,
+      channelFederatedId
+    });
+
     return res.status(200).json({
       success: true,
-      remoteResponse
+      message: `You have unfollowed channel: ${name} on ${targetServer}`
     });
 
   } catch (err) {

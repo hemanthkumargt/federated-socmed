@@ -8,7 +8,7 @@ import { createError } from "../utils/error.js";
  * - REST followUser controller
  * - Federation inbox FOLLOW event
  */
-export const followUserService = async (followerFederatedId,followingFederatedId,followerOriginServer,followingOriginServer) => {
+export const followUserService = async (followerFederatedId, followingFederatedId, followerOriginServer, followingOriginServer) => {
 
   if (followerFederatedId === followingFederatedId) {
     throw createError(400, "You cannot follow yourself");
@@ -83,4 +83,17 @@ export const unfollowUserService = async (
     { federatedId: followingFederatedId },
     { $inc: { followersCount: -1 } }
   );
+};
+
+/**
+ * Shared service for retrieving a user's profile data.
+ * Used by userController (local views) and federationFeedController (remote views).
+ */
+export const getUserProfileService = async (federatedId) => {
+  const user = await User.findOne(
+    { federatedId },
+    { displayName: 1, avatarUrl: 1, federatedId: 1, followersCount: 1, followingCount: 1 }
+  );
+  if (!user) throw createError(404, "User not found");
+  return user;
 };
