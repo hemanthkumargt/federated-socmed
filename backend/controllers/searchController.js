@@ -6,20 +6,6 @@ import {
     enrichWithFollowStatus
 } from "../services/searchService.js";
 
-// ──────────────────────────────────────────────
-//  GET /api/search/users?q=<query>&limit=<n>
-// ──────────────────────────────────────────────
-//
-//  Covers User Stories 1‑8:
-//   1. Local username search (no server name)
-//   2. Local search prioritisation
-//   3. Explicit remote search (username@server)
-//   4. Search query validation
-//   5. Partial username matching
-//   6. Highlight followed users (is_following flag)
-//   7. Search result limiting
-//   8. Disable remote search (ENABLE_REMOTE_SEARCH env flag)
-// ──────────────────────────────────────────────
 
 export const searchUsers = async (req, res, next) => {
     try {
@@ -88,3 +74,4 @@ export const searchUsers = async (req, res, next) => {
         next(err);
     }
 };
+
