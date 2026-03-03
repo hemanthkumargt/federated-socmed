@@ -21,6 +21,11 @@ const postSchema = new mongoose.Schema(
       validate: [arr => arr.length <= 4, 'Maximum 4 images allowed']
     },
 
+    isEditable: {
+      type: Boolean,
+      default: true
+    },
+
     /* ========= POST TYPE ========= */
 
     isUserPost: {
@@ -29,6 +34,12 @@ const postSchema = new mongoose.Schema(
     },
 
     userDisplayName: {
+      type: String,
+      default: null
+    },
+
+    // Stable ownership reference — used for authorization checks
+    authorFederatedId: {
       type: String,
       default: null
     },
@@ -130,6 +141,15 @@ const postSchema = new mongoose.Schema(
           createdAt: {
             type: Date,
             default: Date.now
+          },
+          commentFederatedId: {
+            type: String,
+            required: true
+          },
+
+          originServer: {
+            type: String,
+            required: true
           }
         }
       ],

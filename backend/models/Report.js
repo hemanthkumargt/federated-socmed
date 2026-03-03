@@ -52,6 +52,18 @@ const reportSchema = new mongoose.Schema(
             default: "pending"
         },
 
+        /* ===== FEDERATION ===== */
+
+        targetOriginServer: {
+            type: String,
+            required: true
+        },
+
+        isRemoteTarget: {
+            type: Boolean,
+            default: false
+        }
+
         
     },
     { timestamps: true }

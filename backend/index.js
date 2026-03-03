@@ -7,6 +7,7 @@ import postRoute from "./routes/postRoute.js"
 import channelRoute from "./routes/channelRoute.js"
 import userRoute from "./routes/userRoute.js"
 import reportRoute from "./routes/reportRoute.js"
+import federationRout from "./routes/federationRoute.js"
 
 dotenv.config()
 
@@ -19,13 +20,6 @@ app.use(cors({
 
 app.use(express.json({ limit: '50mb' })) // to allow image upload sizes larger than the default 100kb previously
 
-mongoose.connect(process.env.MONGO_URL).then(() => {
-  console.log("Connected to MongoDB")
-}).catch((err) => {
-  console.log("Error connecting to MongoDB:", err)
-})
-
-
 const PORT = process.env.PORT || 5000;
 
 app.use("/api/auth", authRoute)
@@ -33,6 +27,7 @@ app.use("/api/posts", postRoute)
 app.use("/api/user", userRoute)
 app.use("/api/channels", channelRoute)
 app.use("/api/reports", reportRoute)
+app.use("/api/federation", federationRout)
 
 app.use((err, req, res, next) => {
   const errorStatus = err.status || 500
@@ -45,12 +40,16 @@ app.use((err, req, res, next) => {
   })
 })
 
-
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`)
-})
-
-console.log("Backend server is running")
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log("Connected to MongoDB")
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`)
+    })
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err)
+    process.exit(1)
+  })
 
 export default app

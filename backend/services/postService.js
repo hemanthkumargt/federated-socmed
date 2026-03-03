@@ -1,6 +1,60 @@
 import Post from "../models/Post.js";
 
 /*
+  Create Post Business Logic
+  Used by:
+  - Controller
+  - Federation Inbox (remote post replication)
+*/
+export const createPostService = async ({
+    description,
+    image,
+    images,
+    isUserPost,
+    userDisplayName,
+    authorFederatedId,
+    isChannelPost,
+    channelName,
+    federatedId,
+    originServer
+}) => {
+
+    const newPost = new Post({
+        description,
+        image: image || null,
+        images: images || [],
+        isUserPost,
+        userDisplayName: userDisplayName,
+        authorFederatedId: authorFederatedId,
+
+        isChannelPost: !!isChannelPost,
+        channelName: isChannelPost ? channelName : null,
+
+        federatedId,
+        originServer,
+        serverName: originServer,
+
+        isRemote: false,
+        federationStatus: "local",
+        federatedTo: []
+    });
+
+    return await newPost.save();
+};
+
+
+/*
+  Delete Post Business Logic
+  Used by:
+  - Controller
+  - Federation Inbox (future delete forwarding)
+*/
+export const deletePostService = async (post) => {
+    return await Post.findByIdAndDelete(post._id);
+};
+
+
+/*
   Like / Unlike Post Business Logic
   Used by:
   - Controller
@@ -53,4 +107,28 @@ export const addCommentService = async (post, {
     await post.save();
 
     return newComment;
+};
+
+
+/**
+ * Shared service for retrieving posts for a specific list of users/channels.
+ * Used by postController (local timeline) and federationFeedController (remote timeline fetch).
+ */
+export const getPostsByIdsService = async (userIds = [], channelIds = []) => {
+    const orClauses = [];
+    if (userIds.length) orClauses.push({ authorFederatedId: { $in: userIds }, isUserPost: true });
+    if (channelIds.length) {
+        const channelNames = channelIds.map(id => id.split("@")[0]);
+        orClauses.push({
+            isChannelPost: true,
+            channelName: { $in: channelNames },
+            originServer: process.env.SERVER_NAME
+        });
+    }
+
+    if (!orClauses.length) return [];
+
+    return await Post.find({ $or: orClauses })
+        .sort({ createdAt: -1 })
+        .limit(10);
 };

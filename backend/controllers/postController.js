@@ -1,13 +1,18 @@
 import { createError } from "../utils/error.js";
 import Post from "../models/Post.js";
 import Channel from "../models/Channel.js";
-import UserFollow from "../models/UserFollow.js";
-import User from "../models/User.js";
 import {
+  createPostService,
+  deletePostService,
   toggleLikePostService,
   addCommentService
 } from "../services/postService.js";
 import { sendFederationEvent } from "../services/federationService.js";
+import UserFollow from "../models/UserFollow.js";
+import ChannelFollow from "../models/ChannelFollow.js";
+import TrustedServer from "../models/TrustedServer.js";
+import axios from "axios";
+
 
 export const createPost = async (req, res, next) => {
   try {
@@ -27,9 +32,9 @@ export const createPost = async (req, res, next) => {
 
     const isUserPost = !isChannelPost;
 
-    // ===== CHANNEL POST VALIDATION =====
     let channel = null;
 
+    // Channel validation remains in controller (HTTP validation layer)
     if (isChannelPost) {
       if (!channelName) {
         return next(createError(400, "Channel name is required for channel posts"));
@@ -57,7 +62,7 @@ export const createPost = async (req, res, next) => {
       }
     }
 
-    // ===== FEDERATED ID =====
+    // Federated ID generation stays here (request context logic)
     let postFederatedId;
     if (isChannelPost) {
       postFederatedId = `${channelName}@${req.user.serverName}/post/${Date.now()}`;
@@ -65,28 +70,19 @@ export const createPost = async (req, res, next) => {
       postFederatedId = `${req.user.federatedId}/post/${Date.now()}`;
     }
 
-    // ===== CREATE POST =====
-    const newPost = new Post({
+    // Delegate DB creation to service layer
+    const savedPost = await createPostService({
       description: description.trim(),
       image: imageList.length > 0 ? imageList[0] : null,
       images: imageList,
-
       isUserPost,
-      userDisplayName: isUserPost || isChannelPost ? req.user.displayName : null,
-
-      isChannelPost: !!isChannelPost,
-      channelName: isChannelPost ? channelName : null,
-
+      userDisplayName: req.user.displayName,
+      authorFederatedId: req.user.federatedId,
+      isChannelPost,
+      channelName,
       federatedId: postFederatedId,
-      originServer: req.user.serverName,
-      serverName: req.user.serverName,
-
-      isRemote: false,
-      federationStatus: "local",
-      federatedTo: []
+      originServer: req.user.serverName
     });
-
-    const savedPost = await newPost.save();
 
     res.status(201).json({
       success: true,
@@ -97,6 +93,7 @@ export const createPost = async (req, res, next) => {
     next(err);
   }
 };
+
 
 export const deletePost = async (req, res, next) => {
   try {
@@ -111,22 +108,27 @@ export const deletePost = async (req, res, next) => {
       return next(createError(403, "Cannot modify remote content"));
     }
 
+    // Use federatedId (stable) instead of displayName (mutable) for ownership check
     if (
-      post.userDisplayName !== req.user.displayName &&
+      post.authorFederatedId !== req.user.federatedId &&
       req.user.role !== "admin"
     ) {
       return next(createError(403, "Unauthorized action"));
     }
 
-    await Post.findByIdAndDelete(postId);
+    // Delegate deletion to service
+    await deletePostService(post);
+
     res.status(200).json({
       success: true,
       message: "Post deleted successfully"
     });
+
   } catch (err) {
     next(err);
   }
 };
+
 
 export const likePost = async (req, res, next) => {
   try {
@@ -138,14 +140,15 @@ export const likePost = async (req, res, next) => {
 
     if (postServer !== process.env.SERVER_NAME) {
       // Remote post - send federation event
-      const remoteResponse = await sendFederationEvent({
+      // The remote server's likedBy array handles deduplication via toggleLikePostService
+      await sendFederationEvent({
         type: "LIKE_POST",
         actorFederatedId: userId,
         objectFederatedId: federatedId
       });
       return res.status(200).json({
         success: true,
-        remoteResponse
+        message: "Like event sent to remote server"
       });
     }
 
@@ -172,50 +175,27 @@ export const likePost = async (req, res, next) => {
   }
 };
 
-export const getFollowingPosts = async (req, res, next) => {
+
+export const getPosts = async (req, res, next) => {
   try {
-    const userId = req.user.federatedId;
-    const userDisplayName = req.user.displayName;
+    const { authorFederatedId } = req.query;
 
-    // get list of users this person follows
-    const follows = await UserFollow.find({ followerFederatedId: userId });
-    const followingIds = follows.map(f => f.followingFederatedId);
+    const query = {};
+    if (authorFederatedId) {
+      query.authorFederatedId = authorFederatedId;
+    }
 
-    // resolve display names from federatedIds
-    const followedUsers = await User.find(
-      { federatedId: { $in: followingIds } },
-      { displayName: 1 }
-    );
-    const followedNames = followedUsers.map(u => u.displayName);
-
-    // include the user's own display name so their own posts show up too
-    followedNames.push(userDisplayName);
-
-    const posts = await Post.find({
-      isUserPost: true,
-      userDisplayName: { $in: followedNames }
-    }).sort({ createdAt: -1 });
+    const posts = await Post.find(query).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       posts
     });
+
   } catch (err) {
     next(err);
   }
 };
-
-export const getPosts = async (req, res, next) => {
-  try {
-    const posts = await Post.find().sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      posts
-    });
-  } catch (err) {
-    next(err);
-  }
-}
 
 
 export const createComment = async (req, res, next) => {
@@ -266,6 +246,140 @@ export const createComment = async (req, res, next) => {
     res.status(200).json({
       success: true,
       commentFederatedId
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+
+/**
+ * GET /api/posts/timeline
+ * Returns a personalised feed for the logged-in user:
+ *   - Up to 10 posts from local users they follow
+ *   - Up to 10 posts from local channels they follow
+ *   - Up to 10 posts from remote users they follow (one HTTP call per remote server)
+ *   - Up to 10 posts from remote channels they follow (one HTTP call per remote server)
+ * All results are merged and returned in a random shuffled order.
+ */
+export const getTimeline = async (req, res, next) => {
+  try {
+    const userId = req.user.federatedId;
+
+    // ── 1. Fetch all follow relationships for this user ──────────────────────
+    const [userFollows, channelFollows] = await Promise.all([
+      UserFollow.find({ followerFederatedId: userId }),
+      ChannelFollow.find({ userFederatedId: userId })
+    ]);
+
+    // ── 2. Split into local vs remote ────────────────────────────────────────
+    const localUserIds = [];
+    const remoteUserMap = {}; // { serverName: [federatedId, ...] }
+
+    for (const f of userFollows) {
+      if (f.followingOriginServer === process.env.SERVER_NAME) {
+        localUserIds.push(f.followingFederatedId);
+      } else {
+        if (!remoteUserMap[f.followingOriginServer]) remoteUserMap[f.followingOriginServer] = [];
+        remoteUserMap[f.followingOriginServer].push(f.followingFederatedId);
+      }
+    }
+
+    const localChannelIds = [];
+    const remoteChannelMap = {}; // { serverName: [channelFederatedId, ...] }
+
+    for (const f of channelFollows) {
+      if (f.channelOriginServer === process.env.SERVER_NAME) {
+        localChannelIds.push(f.channelFederatedId);
+      } else {
+        if (!remoteChannelMap[f.channelOriginServer]) remoteChannelMap[f.channelOriginServer] = [];
+        remoteChannelMap[f.channelOriginServer].push(f.channelFederatedId);
+      }
+    }
+
+    // ── 3. Local queries (run in parallel) ───────────────────────────────────
+    const localPostsPromise = localUserIds.length
+      ? Post.find({ authorFederatedId: { $in: localUserIds }, isUserPost: true }).sort({ createdAt: -1 }).limit(10)
+      : Promise.resolve([]);
+
+    const localChannelNames = localChannelIds.map(id => id.split("@")[0]);
+    const localChannelPostsPromise = localChannelNames.length
+      ? Post.find({
+        isChannelPost: true,
+        channelName: { $in: localChannelNames },
+        originServer: process.env.SERVER_NAME
+      }).sort({ createdAt: -1 }).limit(10)
+      : Promise.resolve([]);
+
+    // ── 4. Remote queries ─────────────────────────────────────────────────────
+    // Collect all unique remote server names
+    const allRemoteServers = new Set([
+      ...Object.keys(remoteUserMap),
+      ...Object.keys(remoteChannelMap)
+    ]);
+
+    // For each remote server: one HTTP call with both user IDs and channel IDs
+    const remotePostPromises = [...allRemoteServers].map(async (serverName) => {
+      try {
+        const trusted = await TrustedServer.findOne({ serverName, isActive: true });
+        if (!trusted) return [];
+
+        const params = new URLSearchParams();
+        if (remoteUserMap[serverName]?.length) params.set("userIds", remoteUserMap[serverName].join(","));
+        if (remoteChannelMap[serverName]?.length) params.set("channelIds", remoteChannelMap[serverName].join(","));
+
+        params.set("type", "GET_POSTS");
+
+        const { data } = await axios.get(
+          `${trusted.serverUrl}/api/federation/feed?${params.toString()}`,
+          {
+            headers: { "x-origin-server": process.env.SERVER_NAME },
+            timeout: 4000
+          }
+        );
+        return data.posts || [];
+      } catch {
+        return []; // If remote server is offline, skip gracefully
+      }
+    });
+
+    // ── 5. Await everything in parallel ──────────────────────────────────────
+    const [
+      localUserPosts,
+      localChannelPosts,
+      ...remoteResultArrays
+    ] = await Promise.all([
+      localPostsPromise,
+      localChannelPostsPromise,
+      ...remotePostPromises
+    ]);
+
+    // Flatten remote results and split into first 10 user posts + 10 channel posts
+    const allRemotePosts = remoteResultArrays.flat();
+    const remoteUserPosts = allRemotePosts.filter(p => !p.channelName).slice(0, 10);
+    const remoteChannelPosts = allRemotePosts.filter(p => !!p.channelName).slice(0, 10);
+
+    // ── 6. Merge all four buckets and shuffle ────────────────────────────────
+    const combined = [
+      ...localUserPosts,
+      ...localChannelPosts,
+      ...remoteUserPosts,
+      ...remoteChannelPosts
+    ];
+
+    // Fisher-Yates shuffle for a random feed order
+    for (let i = combined.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [combined[i], combined[j]] = [combined[j], combined[i]];
+    }
+
+    return res.status(200).json({
+      success: true,
+      total: combined.length,
+      posts: combined
     });
 
   } catch (err) {
