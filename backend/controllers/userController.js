@@ -279,6 +279,7 @@ export const updateProfile = async (req, res, next) => {
     if (displayName) updateFields.displayName = displayName;
     if (email) updateFields.email = email;
     if (dob) updateFields.dob = new Date(dob);
+    if (req.body.bannerUrl !== undefined) updateFields.bannerUrl = req.body.bannerUrl;
 
     const updatedUser = await User.findOneAndUpdate(
       { federatedId: userId },
