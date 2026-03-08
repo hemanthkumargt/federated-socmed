@@ -8,6 +8,9 @@ import Settings from './components/HomePage-components/Settings';
 import LandingPage from './pages/LandingPage';
 import ServerHome from './pages/serverhome';
 import Admin from './pages/Admin';
+import ChannelPage from './pages/ChannelPage';
+import HelpCenter from './pages/HelpCenter';
+import SupportForm from './pages/SupportForm';
 import UnlockAccount from './pages/UnlockAccount';
 import './styles/app.css';
 
@@ -52,6 +55,11 @@ function App() {
                     <Channels />
                 </ProtectedRoute>
             } />
+            <Route path="/channels/:channelName" element={
+                <ProtectedRoute>
+                    <ChannelPage />
+                </ProtectedRoute>
+            } />
             <Route path="/server-details" element={
                 <ProtectedRoute>
                     <ServerDetails />
@@ -67,6 +75,16 @@ function App() {
             <Route path="/admin" element={
                 <ProtectedRoute>
                     <Admin />
+                </ProtectedRoute>
+            } />
+            <Route path="/help-center" element={
+                <ProtectedRoute>
+                    <HelpCenter />
+                </ProtectedRoute>
+            } />
+            <Route path="/help-center/contact" element={
+                <ProtectedRoute>
+                    <SupportForm />
                 </ProtectedRoute>
             } />
             <Route path="/unlock-account" element={<UnlockAccount />} />
