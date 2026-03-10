@@ -5,7 +5,7 @@ import PostList from '../components/PostList';
 import Layout from '../components/Layout';
 import '../styles/Home.css';
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api");
 
 function Home() {
   const [activeTimeline, setActiveTimeline] = useState('home');
