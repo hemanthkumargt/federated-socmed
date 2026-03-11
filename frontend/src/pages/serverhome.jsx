@@ -30,7 +30,7 @@ const VideoBg = styled.video`
   min-height: 100vh;
   width: auto;
   height: auto;
-  z-index: -1;
+  z-index: 1;
   transform: translate(-50%, -50%);
   object-fit: cover;
   opacity: 1;
@@ -38,7 +38,7 @@ const VideoBg = styled.video`
 
 const ContentOverlay = styled.div`
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   min-height: 100vh;
   max-width: 1400px;

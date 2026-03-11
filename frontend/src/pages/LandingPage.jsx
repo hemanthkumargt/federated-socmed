@@ -15,7 +15,7 @@ import '../styles/LandingPage.css';
 const GlobalStyle = createGlobalStyle`
   body {
     font-family: 'Nunito', 'Outfit', sans-serif;
-    background: #020617 !important;
+    background: transparent !important;
     color: #ffffff;
     margin: 0;
     padding: 0;
@@ -38,14 +38,14 @@ const VideoBgGlobal = styled.video`
     min-height: 100vh;
     object-fit: cover;
     transform: translate(-50%, -50%);
-    z-index: -2;
+    z-index: 1;
     opacity: 1; /* Fully visible as requested */
     background: #020617; /* High-contrast fallback */
 `;
 
 const ContentLayer = styled.div`
   position: relative;
-  z-index: 1;
+  z-index: 2;
 `;
 
 const FeaturesSection = styled.section`
