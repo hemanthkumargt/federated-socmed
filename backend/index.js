@@ -22,7 +22,13 @@ const app = express()
 const httpServer = createServer(app)
 export const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:3000", "https://federated-socialnetw.vercel.app"],
+    origin: [
+      "http://localhost:5173", 
+      "http://localhost:3000", 
+      "https://federated-socialnetw.vercel.app",
+      "https://federated-socialnetw-2.vercel.app",
+      "https://federated-socmed.vercel.app"
+    ],
     credentials: true
   }
 })
@@ -66,7 +72,13 @@ io.on("connection", (socket) => {
 })
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000", "https://federated-socialnetw.vercel.app"],
+  origin: [
+    "http://localhost:5173", 
+    "http://localhost:3000", 
+    "https://federated-socialnetw.vercel.app",
+    "https://federated-socialnetw-2.vercel.app",
+    "https://federated-socmed.vercel.app"
+  ],
   credentials: true
 }))
 

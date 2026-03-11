@@ -224,6 +224,7 @@ export const setupPresentationData = async (req, res, next) => {
     // 2. Create Users
     const usersData = [
       { displayName: "hkadmin", firstName: "Hemanth", lastName: "Admin", email: "hkadmin@example.com", role: "admin" },
+      { displayName: "sportsadmin", firstName: "Sports", lastName: "Admin", email: "sports@test.com", role: "admin" },
       { displayName: "MinecraftUser", firstName: "Alex", lastName: "Steve", email: "minecraft@test.com", role: "user" },
       { displayName: "bob", firstName: "Bob", lastName: "Builder", email: "bob@example.com", role: "user" }
     ];
@@ -285,7 +286,7 @@ export const setupPresentationData = async (req, res, next) => {
       }
     }
 
-    res.status(200).json({ success: true, message: "Presentation data prepared! Usernames: hkadmin, MinecraftUser, bob. Password: password123" });
+    res.status(200).json({ success: true, message: "Presentation data prepared! Usernames: hkadmin, sportsadmin, MinecraftUser, bob. Password: password123" });
   } catch (err) {
     next(err);
   }
