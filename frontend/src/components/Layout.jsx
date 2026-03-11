@@ -71,10 +71,7 @@ const MainScrollArea = styled.main`
 `;
 
 const wallpapers = [
-  "/media/sakura-field-minecraft-moewalls-com-small.mp4",
-  "/media/rainy-evening-minecraft.1920x1080.mp4",
-  "/media/lakeside.mp4",
-  "/media/rainy_evening.mp4"
+  "/media/rainy-evening-minecraft.1920x1080.mp4"
 ];
 
 const Layout = ({ children }) => {

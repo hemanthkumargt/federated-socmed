@@ -557,3 +557,111 @@ body {
 .timeline-tabs button:hover:not(.active) {
   color: #ffffff;
 }
+
+/* Comments Section Style */
+.comments-drawer {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.comment-input-wrap {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comment-input-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+.send-inline-btn {
+  background: #ec4899;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.send-inline-btn:hover {
+  transform: scale(1.05);
+  background: #db2777;
+}
+
+.send-inline-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.comment-bubble-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.comment-avatar-sm {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+
+.comment-content-box {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px 16px;
+  border-radius: 18px;
+  border-top-left-radius: 4px;
+  font-size: 14px;
+  flex: 1;
+}
+
+.commenter-name {
+  display: block;
+  font-weight: 700;
+  font-size: 12px;
+  color: #ec4899;
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  color: #e2e8f0;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.no-comments-msg {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+  margin: 20px 0;
+}
