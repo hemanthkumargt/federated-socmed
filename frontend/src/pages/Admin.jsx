@@ -467,26 +467,6 @@ const Admin = () => {
               <span>Reports</span>
             </div>
 
-            <div className="admin-nav-section">Management</div>
-
-            <div
-              className={`admin-nav-item ${activeTab === 'blocked' ? 'active' : ''}`}
-              onClick={() => setActiveTab('blocked')}
-            >
-              <FiSlash size={18} />
-              <span>Blocked Accounts</span>
-            </div>
-
-            <div className="admin-nav-section">Settings</div>
-
-            <div
-              className={`admin-nav-item ${activeTab === 'security' ? 'active' : ''}`}
-              onClick={() => setActiveTab('security')}
-            >
-              <FiLock size={18} />
-              <span>Security</span>
-            </div>
-
             <div
               className={`admin-nav-item ${activeTab === 'server' ? 'active' : ''}`}
               onClick={() => setActiveTab('server')}
@@ -516,7 +496,6 @@ const Admin = () => {
             <>
               <div className="admin-header">
                 <h1 className="page-title">Dashboard Overview</h1>
-                <button className="primary-btn" onClick={() => alert('Generating report...')}>Generate Report</button>
               </div>
 
               {/* Stats Grid */}
@@ -887,12 +866,6 @@ const Admin = () => {
             </div>
           )}
 
-          {(activeTab === 'blocked' || activeTab === 'security') && (
-            <div className="admin-section">
-              <h2>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Settings</h2>
-              <p>Coming soon...</p>
-            </div>
-          )}
 
         </main>
       </div>
