@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
 import { FiX, FiSend, FiUser, FiCheck, FiCheckSquare } from 'react-icons/fi';
 import '../../styles/DirectMessage.css';
 import { getApiBaseUrl } from '../../config/api';
@@ -9,6 +10,7 @@ const API_BASE_URL = getApiBaseUrl();
 const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
 const DirectMessage = ({ onClose, initialTargetUser = null }) => {
+    const navigate = useNavigate();
     const [socket, setSocket] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
 
@@ -241,8 +243,8 @@ const DirectMessage = ({ onClose, initialTargetUser = null }) => {
                         {searchResults.length > 0 && (
                             <div className="search-results">
                                 {searchResults.map(user => (
-                                    <div key={user._id || user.id} className="search-user-item" onClick={() => selectUser(user)}>
-                                        <div className="user-avatar-sm avatar-initials">
+                                    <div key={user._id || user.id} className="search-user-item" onClick={() => navigate(`/user/${encodeURIComponent(user.federatedId || user._id)}`)}>
+                                        <div className="user-avatar-sm avatar-initials" style={{ borderRadius: '50%' }}>
                                             {getInitials(getUserDisplayName(user))}
                                         </div>
                                         <div>
@@ -270,7 +272,7 @@ const DirectMessage = ({ onClose, initialTargetUser = null }) => {
                                 className={`contact-item ${(activeChatUser?._id === user._id || activeChatUser?.id === user.id) ? 'active' : ''}`}
                                 onClick={() => selectUser(user)}
                             >
-                                <div className="user-avatar-sm avatar-initials">
+                                <div className="user-avatar-sm avatar-initials" style={{ borderRadius: '50%' }}>
                                     {getInitials(getUserDisplayName(user))}
                                 </div>
                                 <div className="contact-info">
@@ -290,11 +292,14 @@ const DirectMessage = ({ onClose, initialTargetUser = null }) => {
                         <>
                             <div className="chat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div className="user-avatar-sm avatar-initials">
+                                    <div className="user-avatar-sm avatar-initials" 
+                                        onClick={() => navigate(`/user/${encodeURIComponent(activeChatUser.federatedId || activeChatUser._id)}`)}
+                                        style={{ cursor: 'pointer', borderRadius: '50%' }}
+                                    >
                                         {getInitials(getUserDisplayName(activeChatUser))}
                                     </div>
-                                    <div>
-                                        <strong>{getUserDisplayName(activeChatUser)}</strong>
+                                    <div onClick={() => navigate(`/user/${encodeURIComponent(activeChatUser.federatedId || activeChatUser._id)}`)} style={{ cursor: 'pointer' }}>
+                                        <strong style={{ display: 'block' }}>{getUserDisplayName(activeChatUser)}</strong>
                                         {activeChatUser.serverName && (
                                             <span className="server-tag"> @{activeChatUser.serverName}</span>
                                         )}

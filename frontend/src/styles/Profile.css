@@ -5,14 +5,12 @@
 }
 
 .profile-header {
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 32px;
+  background: white;
+  border-radius: 12px;
   overflow: hidden;
   margin-bottom: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
 .profile-cover {
@@ -31,9 +29,9 @@
 .profile-avatar-large {
   width: 140px;
   height: 140px;
-  border-radius: 40px;
-  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
-  border: 6px solid rgba(15, 23, 42, 0.8);
+  border-radius: 50%;
+  background: #ec4899;
+  border: 6px solid white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,17 +40,15 @@
   color: white;
   margin-top: -70px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
 .profile-details h1 {
   font-family: 'Outfit', sans-serif;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  color: #0f172a;
+  margin-bottom: 4px;
 }
 
 .username {
@@ -64,7 +60,7 @@
 
 .bio {
   font-size: 16px;
-  color: #cbd5e1;
+  color: #475569;
   line-height: 1.8;
   margin-bottom: 24px;
   max-width: 600px;
@@ -75,7 +71,7 @@
   flex-wrap: wrap;
   gap: 24px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #64748b;
 }
 
 .profile-meta span {
@@ -92,27 +88,27 @@
 }
 
 .stat {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 24px;
   text-align: center;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 
 .stat-number {
   display: block;
   font-size: 32px;
   font-weight: 800;
-  color: #ffffff;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -124,21 +120,21 @@
 }
 
 .profile-content {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 32px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 40px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
 .profile-content h2 {
   font-family: 'Outfit', sans-serif;
   font-size: 24px;
   font-weight: 800;
-  color: #ffffff;
+  color: #0f172a;
   margin-bottom: 30px;
   padding-bottom: 12px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid #f1f5f9;
 }
 
 /* Modal Styling */

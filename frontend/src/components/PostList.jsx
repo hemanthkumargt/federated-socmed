@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiHeart, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiRepeat, FiSlash, FiSend, FiLink } from 'react-icons/fi';
 import { getApiBaseUrl } from '../config/api';
 
 const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged }) => {
+  const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showCommentsId, setShowCommentsId] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -174,13 +176,19 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
 
             <div className="post-header">
               <div className="user-info-group">
-                <div className="user-avatar-initials">
+                <div className="user-avatar-initials" 
+                  onClick={() => navigate(`/user/${encodeURIComponent(post.authorFederatedId || post.federatedId)}`)}
+                  style={{ cursor: 'pointer', borderRadius: '50%' }}
+                >
                   {getInitials(post.userDisplayName || post.author)}
                 </div>
                 <div className="user-meta">
-                  <span className="display-name">
+                  <span className="display-name" 
+                    onClick={() => navigate(`/user/${encodeURIComponent(post.authorFederatedId || post.federatedId)}`)}
+                    style={{ cursor: 'pointer', fontWeight: 800, color: '#0f172a' }}
+                  >
                     {post.userDisplayName || post.author || 'Anonymous'}
-                    {post.isChannelPost && <span className="channel-tag">in #{post.channelName}</span>}
+                    {post.isChannelPost && <span className="channel-tag" style={{ color: '#64748b', fontWeight: 400, fontSize: '0.8em', marginLeft: '5px' }}>in #{post.channelName}</span>}
                   </span>
                   <span className="timestamp">
                     {formatTime(post.createdAt)} {post.serverName && `• ${post.serverName}`}

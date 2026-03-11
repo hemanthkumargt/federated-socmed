@@ -821,20 +821,54 @@ const Admin = () => {
 
               <div className="admin-section">
                 <div className="section-header">
-                  <h2 className="section-h2">Remote / Connected Servers</h2>
+                  <h2 className="section-h2">Federated Server Identity</h2>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '20px' }}>
+                  <div className="stat-card" style={{ borderLeft: '4px solid #ec4899' }}>
+                    <div className="stat-header"><FiServer color="#ec4899" /> Primary Server (Food)</div>
+                    <div className="stat-value" style={{ fontSize: '20px', marginTop: '10px' }}>Connected Main</div>
+                    <p style={{ color: '#64748b', fontSize: '13px', marginTop: '10px' }}>
+                      Primary social hub for general community engagement and cross-server routing.
+                    </p>
+                  </div>
+                  <div className="stat-card" style={{ borderLeft: '4px solid #3b82f6' }}>
+                    <div className="stat-header"><FiServer color="#3b82f6" /> Sports Realm</div>
+                    <div className="stat-value" style={{ fontSize: '20px', marginTop: '10px' }}>Sports Server</div>
+                    <p style={{ color: '#64748b', fontSize: '13px', marginTop: '10px' }}>
+                      Specialized shard dedicated to athletic communities and high-performance federation.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="section-header" style={{ marginTop: '40px' }}>
+                  <h2 className="section-h2">Connected Realm Registry</h2>
                   <button className="primary-btn" onClick={openCreateServerModal}>Add New Server</button>
                 </div>
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>URL</th>
+                      <th>Realm Name</th>
+                      <th>Protocol/URL</th>
                       <th>Category</th>
                       <th>Description</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
+                    <tr>
+                      <td style={{ fontWeight: 800 }}>Food Shard</td>
+                      <td style={{ color: '#ec4899' }}>https://federated-socialnetw.onrender.com</td>
+                      <td><span className="status-badge status-active">Primary</span></td>
+                      <td>Main Community Server</td>
+                      <td><span style={{ color: '#94a3b8', fontStyle: 'italic' }}>System Core</span></td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: 800 }}>Sports Shard</td>
+                      <td style={{ color: '#ec4899' }}>https://federated-sports-server.onrender.com</td>
+                      <td><span className="status-badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>Sports</span></td>
+                      <td>Dedicated Sports Content</td>
+                      <td><span style={{ color: '#94a3b8', fontStyle: 'italic' }}>System Core</span></td>
+                    </tr>
                     {serversList.map(server => (
                       <tr key={server._id}>
                         <td style={{ fontWeight: 600 }}>{server.name}</td>
@@ -850,16 +884,15 @@ const Admin = () => {
                         <td>
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button className="action-btn-sm" onClick={() => openEditServerModal(server)} title="Edit Server">
-                              <FiEdit size={14} /> Edit
+                              <FiEdit size={14} />
                             </button>
-                            <button className="action-btn-sm" style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }} onClick={() => handleDeleteServer(server._id)} title="Delete Server">
-                              <FiTrash2 size={14} /> Delete
+                            <button className="action-btn-sm" style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.1)' }} onClick={() => handleDeleteServer(server._id)} title="Delete Server">
+                              <FiTrash2 size={14} />
                             </button>
                           </div>
                         </td>
                       </tr>
                     ))}
-                    {serversList.length === 0 && <tr><td colSpan="5">No remote servers connected.</td></tr>}
                   </tbody>
                 </table>
               </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import PostList from '../components/PostList';
 import { FiMapPin, FiCalendar, FiArrowLeft, FiUserPlus, FiUserMinus, FiX } from 'react-icons/fi';
@@ -170,6 +170,22 @@ function UserProfile() {
             console.error('Error liking post:', err);
         }
     };
+    const handleMute = () => {
+        const mutes = JSON.parse(localStorage.getItem('mutedUsers') || '[]');
+        if (mutes.includes(decodedId)) {
+            localStorage.setItem('mutedUsers', JSON.stringify(mutes.filter(m => m !== decodedId)));
+            alert(`Unmuted ${userProfile.displayName}`);
+        } else {
+            localStorage.setItem('mutedUsers', JSON.stringify([...mutes, decodedId]));
+            alert(`Muted ${userProfile.displayName}`);
+        }
+    };
+
+    const handleBlock = () => {
+        if (window.confirm(`Are you sure you want to block ${userProfile.displayName}? They will no longer see your posts.`)) {
+            alert(`Blocked ${userProfile.displayName}`);
+        }
+    };
 
     if (error) {
         return (
@@ -212,13 +228,21 @@ function UserProfile() {
                                 <div className="profile-name-row">
                                     <h1>{userProfile.displayName}</h1>
                                     {!isOwnProfile && (
-                                        <button
-                                            className={`follow-btn ${isFollowing ? 'following' : ''}`}
-                                            onClick={handleFollowToggle}
-                                            disabled={followLoading}
-                                        >
-                                            {isFollowing ? <><FiUserMinus /> Unfollow</> : <><FiUserPlus /> Follow</>}
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <button
+                                                className={`follow-btn ${isFollowing ? 'following' : ''}`}
+                                                onClick={handleFollowToggle}
+                                                disabled={followLoading}
+                                            >
+                                                {isFollowing ? <><FiUserMinus /> Unfollow</> : <><FiUserPlus /> Follow</>}
+                                            </button>
+                                            <button className="follow-btn" onClick={handleMute} style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}>
+                                                Mute
+                                            </button>
+                                            <button className="follow-btn" onClick={handleBlock} style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2' }}>
+                                                Block
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                                 <p className="username">@{userProfile.displayName}</p>

@@ -75,7 +75,7 @@ const MainContent = styled.main`
 function Home() {
     const [selectedCategory, setSelectedCategory] = useState('all');
     // Rainy evening Minecraft — as requested for the Servers page
-    const bgVideo = "/media/sakura-field-minecraft-moewalls-com-small.mp4";
+    const bgVideo = "/media/rainy-evening-minecraft.1920x1080.mp4";
 
     // Calculate counts dynamically based on servers list
     const categoriesWithCounts = useMemo(() => {
