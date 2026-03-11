@@ -1,3 +1,4 @@
+// v2.1.0 - Minecraft wallpapers + UI contrast fixes
 // Centralized API configuration to support multi-server hopping
 const DEFAULT_URL = (import.meta.env.VITE_API_BASE_URL || "https://federated-socialnetw.onrender.com/api");
 
