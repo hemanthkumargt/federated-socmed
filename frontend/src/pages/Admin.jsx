@@ -330,17 +330,18 @@ const Admin = () => {
 
   return (
     <div className="admin-page">
-      <video
-        className="auth-video-bg"
-        autoPlay
-        loop
-        muted
-        playsInline
-      >
-        <source src="/media/sakura-field-minecraft-moewalls-com.mp4" type="video/mp4" />
-      </video>
+        <video
+          className="auth-video-bg"
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', objectFit: 'cover', zIndex: 1 }}
+        >
+          <source src="/media/sakura-field-minecraft-moewalls-com-small.mp4" type="video/mp4" />
+        </video>
 
-      <div className="admin-wrapper">
+      <div className="admin-wrapper" style={{ position: 'relative', zIndex: 2 }}>
         <div className="admin-container">
         {/* Sidebar */}
         <aside className="admin-sidebar">
