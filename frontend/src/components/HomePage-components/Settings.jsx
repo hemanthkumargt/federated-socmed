@@ -292,7 +292,7 @@ function Settings() {
                       type="file"
                       accept="image/*"
                       onChange={handleBannerChange}
-                      style={{ padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', background: 'white' }}
+                      style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', background: 'rgba(0,0,0,0.3)', color: 'white' }}
                     />
                     {formData.bannerUrl && (
                       <div style={{ position: 'relative', width: '100%', height: '120px', borderRadius: '8px', overflow: 'hidden' }}>

@@ -8,14 +8,9 @@ export const getApiBaseUrl = () => {
 // Available servers for the demo
 export const SERVERS = [
   { 
-    name: "Food & Tech (Server A)", 
+    name: "Connect Network", 
     url: "https://federated-socialnetw.onrender.com/api",
     localUrl: "http://localhost:5000/api"
-  },
-  { 
-    name: "Sports & News (Server B)", 
-    url: "https://federated-sports-server.onrender.com/api",
-    localUrl: "http://localhost:5001/api"
   }
 ];
 

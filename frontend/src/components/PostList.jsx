@@ -114,14 +114,6 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
     }
   };
 
-  const handleShare = (post) => {
-    const shareUrl = `${window.location.origin}/post/${post.federatedId}`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl).then(() => showToast('🔗 Link copied!'));
-    } else {
-      showToast('🔗 ' + shareUrl);
-    }
-  };
 
   const [toast, setToast] = useState('');
   const showToast = (msg) => {
@@ -207,9 +199,6 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
                         <FiTrash2 /> Delete
                       </button>
                     )}
-                    <button className="dropdown-action-btn" onClick={() => handleShare(post)}>
-                      <FiLink /> Copy Link
-                    </button>
                     <button className="dropdown-action-btn" onClick={() => { showToast('🔇 User muted!'); setOpenMenuId(null); }}>
                       <FiSlash /> Mute User
                     </button>
@@ -254,10 +243,6 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
                 <span>Repost</span>
               </button>
 
-              <button className="post-action-btn" onClick={() => handleShare(post)}>
-                <FiShare2 />
-                <span>Share</span>
-              </button>
             </div>
 
             {showCommentsId === post._id && (

@@ -79,7 +79,8 @@ function Home() {
     setIsSearching(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/user/search?query=${encodeURIComponent(query)}`, {
+      // Use the advanced federated search endpoint
+      const res = await fetch(`${API_BASE_URL}/search/users?q=${encodeURIComponent(query)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

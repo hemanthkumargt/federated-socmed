@@ -154,7 +154,7 @@ function Channels() {
             />
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '18px', marginBottom: '18px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+        <div style={{ display: 'flex', gap: '18px', marginBottom: '18px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '8px', overflowX: 'auto' }}>
           {['all', 'public', 'joined', 'private', 'read-only'].map(f => (
             <button
               key={f}
@@ -163,10 +163,12 @@ function Channels() {
                 border: 'none',
                 background: 'transparent',
                 padding: '8px 4px',
-                color: activeFilter === f ? '#111827' : '#6b7280',
-                fontWeight: activeFilter === f ? 700 : 500,
-                borderBottom: activeFilter === f ? '2px solid #111827' : '2px solid transparent',
-                cursor: 'pointer'
+                color: activeFilter === f ? '#ec4899' : 'rgba(255, 255, 255, 0.5)',
+                fontWeight: activeFilter === f ? 800 : 500,
+                borderBottom: activeFilter === f ? '3px solid #ec4899' : '3px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s'
               }}
             >
               {f === 'all' ? 'All' :

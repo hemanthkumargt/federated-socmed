@@ -7,13 +7,13 @@ const TimelineTabs = ({ activeTimeline, onTimelineChange }) => {
         className={activeTimeline === 'home' ? 'active' : ''}
         onClick={() => onTimelineChange('home')}
       >
-        Home
+        Following
       </button>
       <button
         className={activeTimeline === 'local' ? 'active' : ''}
         onClick={() => onTimelineChange('local')}
       >
-        Local
+        Public
       </button>
     </div>
   );

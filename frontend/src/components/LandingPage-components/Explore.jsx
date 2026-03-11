@@ -68,15 +68,15 @@ const ActionCard = styled.div`
     flex: 1;
     min-width: 300px;
     max-width: 450px;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(15, 23, 42, 0.65); /* Increased for better contrast */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 24px;
     padding: 40px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     transition: all 0.3s ease;
 
     &:hover {
@@ -155,7 +155,7 @@ const Explore = () => {
                         <CardDescription style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '32px' }}>
                             Experience the next evolution of social networking. Immersive, decentralized, and entirely yours.
                         </CardDescription>
-                        <PrimaryButton to="/servers" style={{ fontSize: '18px', padding: '18px 48px', borderRadius: '14px' }}>
+                        <PrimaryButton to="/auth" style={{ fontSize: '18px', padding: '18px 48px', borderRadius: '14px' }}>
                             Start Your Adventure
                         </PrimaryButton>
                     </ActionCard>

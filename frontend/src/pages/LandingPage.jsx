@@ -94,7 +94,9 @@ const LandingPage = () => {
   const [bgVideo] = React.useState(() => {
     const wallpapers = [
       "/media/sakura-field-minecraft-moewalls-com-small.mp4",
+      "/media/minecraft-sakura-oasis-moewalls-com.mp4",
       "/media/sakura_oasis.mp4",
+      "/media/rainy-evening-minecraft.1920x1080.mp4",
       "/media/lakeside.mp4",
       "/media/rainy_evening.mp4"
     ];

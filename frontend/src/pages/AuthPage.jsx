@@ -32,7 +32,7 @@ const PageContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: transparent;
+  background-color: #020617; /* Fallback for white flash fix */
 `;
 
 const VideoBackground = styled.video`
@@ -98,7 +98,7 @@ const OverlayPanel = styled.div`
   left: ${props => (props.$isSignUp ? '0' : '50%')};
   width: 50%;
   height: 100%;
-  background: rgba(236, 72, 153, 0.25);
+  background: rgba(14, 13, 33, 0.7); /* Deepened for visibility */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -352,18 +352,20 @@ const AuthPage = () => {
     } catch (err) { setError("Network error. Please try again."); } finally { setLoading(false); }
   };
 
-  const currentServerUrl = localStorage.getItem('activeServer') || '';
-  const serverName = (currentServerUrl.includes('sports') || currentServerUrl.includes('5001')) ? 'Connect Pro' : 'Connect Home';
 
   const [bgVideo] = useState(() => {
     const wallpapers = [
       "/media/sakura-field-minecraft-moewalls-com-small.mp4",
+      "/media/minecraft-sakura-oasis-moewalls-com.mp4",
       "/media/sakura_oasis.mp4",
+      "/media/rainy-evening-minecraft.1920x1080.mp4",
       "/media/lakeside.mp4",
       "/media/rainy_evening.mp4"
     ];
     return wallpapers[Math.floor(Math.random() * wallpapers.length)];
   });
+
+  const serverName = "Connect";
 
   return (
     <>
@@ -373,35 +375,14 @@ const AuthPage = () => {
           <source src={bgVideo} type="video/mp4" />
         </VideoBackground>
 
-        <RealmSwitcher>
-          <RealmBtn 
-            $active={!currentServerUrl.includes('sports') && !currentServerUrl.includes('5001')}
-            onClick={() => {
-              localStorage.setItem('activeServer', 'https://federated-socialnetw.onrender.com/api');
-              window.location.reload();
-            }}
-          >
-            Connect Home
-          </RealmBtn>
-          <RealmBtn 
-            $active={currentServerUrl.includes('sports') || currentServerUrl.includes('5001')}
-            onClick={() => {
-              localStorage.setItem('activeServer', 'https://federated-sports-server.onrender.com/api');
-              window.location.reload();
-            }}
-          >
-            Connect Pro
-          </RealmBtn>
-        </RealmSwitcher>
-
-        <ContentWrapper>
+        <ContentWrapper style={{ background: 'rgba(2, 6, 23, 0.75)', border: '1px solid rgba(255,255,255,0.1)' }}>
           
-          <OverlayPanel $isSignUp={isSignUp}>
-            <AnimatedLogo>✨</AnimatedLogo>
+          <OverlayPanel $isSignUp={isSignUp} style={{ background: 'rgba(236, 72, 153, 0.15)', backdropFilter: 'blur(30px)' }}>
+            <AnimatedLogo style={{ background: 'linear-gradient(45deg, #ec4899, #be185d)' }}>✨</AnimatedLogo>
             {isSignUp ? (
               <>
                 <Title>Already Forged?</Title>
-                <Subtitle>Return to {serverName} and reconnect with your friends.</Subtitle>
+                <Subtitle>Return to Connect and reconnect with your friends.</Subtitle>
                 <OutlineButton onClick={() => { setIsSignUp(false); setError(""); setSuccess(""); }}>
                   ENTER PORTAL
                 </OutlineButton>
@@ -409,7 +390,7 @@ const AuthPage = () => {
             ) : (
               <>
                 <Title>New Player?</Title>
-                <Subtitle>Forge your identity in the {serverName} and start exploring.</Subtitle>
+                <Subtitle>Forge your identity in the Connect and start exploring.</Subtitle>
                 <OutlineButton onClick={() => { setIsSignUp(true); setError(""); setSuccess(""); }}>
                   CREATE AVATAR
                 </OutlineButton>
@@ -419,7 +400,7 @@ const AuthPage = () => {
 
           <FormSection $active={!isSignUp} $isSignUp={false}>
             <Title $dark>Welcome Back</Title>
-            <Subtitle $dark>Connect to {serverName}</Subtitle>
+            <Subtitle $dark>Connect to the world</Subtitle>
             <form onSubmit={handleLogin}>
               <InputGroup>
                 <InputIcon><FiUser /></InputIcon>
@@ -439,7 +420,7 @@ const AuthPage = () => {
 
           <FormSection $active={isSignUp} $isSignUp={true} style={{ overflowY: 'auto', padding: '20px 40px' }}>
              <Title $dark>Forge Identity</Title>
-             <Subtitle $dark>Join {serverName} today.</Subtitle>
+             <Subtitle $dark>Join Connect today.</Subtitle>
              <form onSubmit={handleSignup} style={{ paddingBottom: '20px' }}>
                 <div style={{display: 'flex', gap: '10px'}}>
                   <InputGroup>

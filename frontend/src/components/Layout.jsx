@@ -72,7 +72,9 @@ const MainScrollArea = styled.main`
 
 const wallpapers = [
   "/media/sakura-field-minecraft-moewalls-com-small.mp4",
+  "/media/minecraft-sakura-oasis-moewalls-com.mp4",
   "/media/sakura_oasis.mp4",
+  "/media/rainy-evening-minecraft.1920x1080.mp4",
   "/media/lakeside.mp4",
   "/media/rainy_evening.mp4"
 ];
@@ -84,6 +86,7 @@ const Layout = ({ children }) => {
     // Randomize on mount
     const randomWP = wallpapers[Math.floor(Math.random() * wallpapers.length)];
     setBgVideo(randomWP);
+    document.body.style.backgroundColor = "#020617";
   }, []);
 
   return (
@@ -94,6 +97,7 @@ const Layout = ({ children }) => {
           <source src={bgVideo} type="video/mp4" />
         </VideoBg>
       )}
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.4)', zIndex: 0 }}></div>
       <GlassContainer className="app-container">
         <SidebarLeft />
         <MainScrollArea className="main-content">

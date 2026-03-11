@@ -43,7 +43,7 @@ const UnlockAccount = () => {
                 muted
                 playsInline
             >
-                <source src="/media/lakeside-morning-minecraft-moewalls-com.mp4" type="video/mp4" />
+                <source src="/media/lakeside.mp4" type="video/mp4" />
             </video>
 
             <div className="auth-content">
