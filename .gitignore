@@ -18,10 +18,9 @@ frontend/.env
 *.log
 npm-debug.log*
 
-# Large media files - too big for GitHub
-frontend/public/media/
-*.mp4
-*.webm
+# Large media files - too big for GitHub (>100MB)
+frontend/public/media/minecraft-sakura-oasis-moewalls-com.mp4
+frontend/public/media/sakura_oasis.mp4
 *.mov
 *.avi
 *.mkv
