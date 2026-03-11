@@ -16,6 +16,11 @@ export const SERVERS = [
     name: "Connect Network", 
     url: "https://federated-socialnetw.onrender.com/api",
     localUrl: "http://localhost:5000/api"
+  },
+  {
+    name: "Sports Server",
+    url: "https://federated-sports-server.onrender.com/api",
+    localUrl: "http://localhost:5001/api"
   }
 ];
 
