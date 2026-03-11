@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import Home from './pages/Home';
@@ -34,6 +35,24 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
+    useEffect(() => {
+        // KEEP-ALIVE SYSTEM: This pings the Render backend every 5 minutes 
+        // to prevent it from going to sleep while the app is open.
+        const keepAlive = () => {
+            const apiUrls = [
+                "https://federated-socialnetw.onrender.com/api/posts", // Food Shard
+                "https://federated-sports-server.onrender.com/api/posts" // Sports Shard
+            ];
+            apiUrls.forEach(url => {
+                fetch(url).catch(() => {}); // Silent ping
+            });
+        };
+
+        const interval = setInterval(keepAlive, 300000); // 5 minutes
+        keepAlive(); // Initial ping
+        return () => clearInterval(interval);
+    }, []);
+
     return (
         <Routes>
             <Route path="/auth" element={
