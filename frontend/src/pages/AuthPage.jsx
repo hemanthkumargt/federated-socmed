@@ -325,7 +325,11 @@ const AuthPage = () => {
       } else {
         setError(data.message || "Login failed");
       }
-    } catch (err) { setError("Network error. Please try again."); } finally { setLoading(false); }
+    } catch (err) { 
+      setError("Portal is waking up (Render sleep). Please try again in 20 seconds."); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleSignup = async (e) => {
@@ -348,7 +352,11 @@ const AuthPage = () => {
       } else {
         setError(data.message || "Registration failed");
       }
-    } catch (err) { setError("Network error. Please try again."); } finally { setLoading(false); }
+    } catch (err) { 
+      setError("Portal is waking up (Render sleep). Please try again in 20 seconds."); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
 
