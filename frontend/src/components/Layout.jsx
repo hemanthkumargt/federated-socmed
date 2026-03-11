@@ -2,6 +2,7 @@ import React from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import SidebarLeft from './SidebarLeft';
 import SidebarRight from './SidebarRight';
+import Header from './Header';
 
 const GlobalAuthStyle = createGlobalStyle`
   body {
@@ -35,7 +36,11 @@ const VideoBg = styled.video`
 
 const GlassContainer = styled.div`
   display: grid;
-  grid-template-columns: 280px 1fr 340px;
+  grid-template-areas: 
+    "sidebar-left global-header sidebar-right"
+    "sidebar-left main-content sidebar-right";
+  grid-template-columns: 280px 1.2fr 340px;
+  grid-template-rows: 90px 1fr;
   gap: 24px;
   height: 100vh;
   padding: 24px;
@@ -49,7 +54,11 @@ const GlassContainer = styled.div`
   }
 
   @media (max-width: 992px) {
+    grid-template-areas: 
+      "global-header"
+      "main-content";
     grid-template-columns: 1fr;
+    grid-template-rows: 90px 1fr;
     padding: 16px;
   }
 `;
@@ -95,6 +104,7 @@ const Layout = ({ children }) => {
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.4)', zIndex: 0 }}></div>
       <GlassContainer className="app-container">
         <SidebarLeft />
+        <Header />
         <MainScrollArea className="main-content">
           {children}
         </MainScrollArea>

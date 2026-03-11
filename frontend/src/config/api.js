@@ -1,6 +1,10 @@
-// v2.1.0 - Minecraft wallpapers + UI contrast fixes
-// Centralized API configuration to support multi-server hopping
-const DEFAULT_URL = (import.meta.env.VITE_API_BASE_URL || "https://federated-socialnetw.onrender.com/api");
+// detect if we are running locally
+const isLocal = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const DEFAULT_URL = isLocal 
+  ? "http://localhost:5000/api"
+  : (import.meta.env.VITE_API_BASE_URL || "https://federated-socialnetw.onrender.com/api");
 
 export const getApiBaseUrl = () => {
   return localStorage.getItem('activeServer') || DEFAULT_URL;

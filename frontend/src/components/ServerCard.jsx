@@ -106,10 +106,11 @@ const ServerCard = ({ server }) => {
                     <a href="/auth" 
                         onClick={(e) => {
                             e.preventDefault();
+                            const isLocal = window.location.hostname === 'localhost';
                             if (server.name.toLowerCase() === 'sports') {
-                                localStorage.setItem('activeServer', 'https://federated-sports-server.onrender.com/api');
+                                localStorage.setItem('activeServer', isLocal ? 'http://localhost:5001/api' : 'https://federated-sports-server.onrender.com/api');
                             } else {
-                                localStorage.setItem('activeServer', 'https://federated-socialnetw.onrender.com/api');
+                                localStorage.setItem('activeServer', isLocal ? 'http://localhost:5000/api' : 'https://federated-socialnetw.onrender.com/api');
                             }
                             window.location.href = '/auth';
                         }}

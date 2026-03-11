@@ -12,9 +12,6 @@ function Home() {
   const [followingPosts, setFollowingPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [activeTimeline, setActiveTimeline] = useState('home');
 
   // fetch all local posts (for the "Local" tab)
@@ -66,34 +63,6 @@ function Home() {
     }
   };
 
-  const handleSearch = async (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    
-    if (query.length < 2) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const token = localStorage.getItem('token');
-      // Use the advanced federated search endpoint
-      const res = await fetch(`${API_BASE_URL}/search/users?q=${encodeURIComponent(query)}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSearchResults(data.users);
-      }
-    } catch (err) {
-      console.error('Search error:', err);
-    }
-  };
-
   const handleFollow = async (federatedId) => {
     try {
       const token = localStorage.getItem('token');
@@ -106,8 +75,6 @@ function Home() {
       const data = await res.json();
       if (data.success) {
           fetchFollowingPosts();
-          setIsSearching(false);
-          setSearchQuery('');
       }
     } catch (err) {
       console.error('Follow error:', err);
@@ -177,34 +144,6 @@ function Home() {
 
   return (
     <Layout>
-      <div className="search-container">
-        <div className="search-bar">
-          <input 
-            type="text" 
-            placeholder="Search users to follow..." 
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-        </div>
-        {isSearching && searchResults.length > 0 && (
-          <div className="search-results-dropdown">
-            {searchResults.map(user => (
-              <div key={user._id} className="search-result-item">
-                <div className="search-result-info">
-                  <span className="search-result-name">{user.displayName}</span>
-                  <span className="search-result-id">{user.federatedId}</span>
-                </div>
-                <button 
-                  className="follow-btn-sm"
-                  onClick={() => handleFollow(user.federatedId)}
-                >
-                  Follow
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
       <TimelineTabs
         activeTimeline={activeTimeline}

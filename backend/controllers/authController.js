@@ -214,10 +214,19 @@ export const setupPresentationData = async (req, res, next) => {
     ];
 
     for (const c of channelsData) {
+      const federatedId = `${c.name}@${server}`;
       await Channel.findOneAndUpdate(
         { name: c.name, serverName: server },
-        { ...c, visibility: "public", isRemote: false },
-        { upsert: true }
+        { 
+          ...c, 
+          visibility: "public", 
+          isRemote: false, 
+          federatedId,
+          originServer: server,
+          serverName: server,
+          createdBy: "system"
+        },
+        { upsert: true, new: true }
       );
     }
 

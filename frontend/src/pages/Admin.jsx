@@ -7,6 +7,7 @@ import {
   FiHome, FiLogOut, FiTrash2, FiEdit, FiArrowUp, FiArrowDown
 } from 'react-icons/fi';
 import ImageCropperModal from '../components/ImageCropperModal';
+import Header from '../components/Header';
 import { getApiBaseUrl } from '../config/api';
 import '../styles/Admin.css';
 
@@ -25,6 +26,7 @@ const Admin = () => {
   const [usersList, setUsersList] = useState([]);
   const [channelsList, setChannelsList] = useState([]);
   const [reportsList, setReportsList] = useState([]);
+  const [serversList, setServersList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Modal state for editing channels
@@ -47,6 +49,16 @@ const Admin = () => {
   const [tempImageSrc, setTempImageSrc] = useState(null);
   const [cropperTarget, setCropperTarget] = useState(null); // 'create' or 'edit'
 
+  // Modal state for servers
+  const [serverModalOpen, setServerModalOpen] = useState(false);
+  const [editingServer, setEditingServer] = useState(null);
+  const [serverFormData, setServerFormData] = useState({
+    name: '',
+    description: '',
+    url: '',
+    category: 'general'
+  });
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,11 +69,12 @@ const Admin = () => {
           headers: { Authorization: `Bearer ${token}` }
         };
 
-        const [usersRes, postsRes, channelsRes, reportsRes] = await Promise.allSettled([
+        const [usersRes, postsRes, channelsRes, reportsRes, serversRes] = await Promise.allSettled([
           axios.get(`${API_BASE_URL}/user`, config),
           axios.get(`${API_BASE_URL}/posts`, config),
           axios.get(`${API_BASE_URL}/channels`, config),
-          axios.get(`${API_BASE_URL}/reports?limit=100`, config)
+          axios.get(`${API_BASE_URL}/reports?limit=100`, config),
+          axios.get(`${API_BASE_URL}/servers`, config)
         ]);
 
         let usedMock = false;
@@ -80,6 +93,10 @@ const Admin = () => {
 
         if (channelsRes.status === 'fulfilled') {
           setChannelsList(channelsRes.value.data.channels || []);
+        }
+
+        if (serversRes.status === 'fulfilled') {
+          setServersList(serversRes.value.data.servers || []);
         }
 
         if (reportsRes.status === 'fulfilled') {
@@ -274,6 +291,61 @@ const Admin = () => {
     setCropperTarget(null);
   };
 
+  const openCreateServerModal = () => {
+    setEditingServer(null);
+    setServerFormData({ name: '', description: '', url: '', category: 'general' });
+    setServerModalOpen(true);
+  };
+
+  const openEditServerModal = (server) => {
+    setEditingServer(server);
+    setServerFormData({
+      name: server.name || '',
+      description: server.description || '',
+      url: server.url || '',
+      category: server.category || 'general'
+    });
+    setServerModalOpen(true);
+  };
+
+  const handleServerSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      if (editingServer) {
+        const res = await axios.put(`${API_BASE_URL}/servers/${editingServer._id}`, serverFormData, config);
+        setServersList(prev => prev.map(s => s._id === editingServer._id ? res.data.server : s));
+        alert('Server updated successfully.');
+      } else {
+        const res = await axios.post(`${API_BASE_URL}/servers`, serverFormData, config);
+        setServersList(prev => [...prev, res.data.server]);
+        alert(`Server added successfully!\nURL: ${res.data.server.url}`);
+      }
+      setServerModalOpen(false);
+      setEditingServer(null);
+    } catch (err) {
+      console.error('Error saving server:', err);
+      alert('Failed to save server details.');
+    }
+  };
+
+  const handleDeleteServer = async (serverId) => {
+    if (!window.confirm('Are you sure you want to delete this server?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE_URL}/servers/${serverId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setServersList(prev => prev.filter(s => s._id !== serverId));
+      alert('Server deleted successfully.');
+    } catch (err) {
+      console.error('Error deleting server:', err);
+      alert('Failed to delete server.');
+    }
+  };
+
   const reviewReport = async (reportId, action) => {
     if (!action) {
       alert(`Reviewing report: ${reportId}\n\nActions available: Approve, Reject`);
@@ -329,22 +401,37 @@ const Admin = () => {
   if (loading) return <div className="admin-loading">Loading Admin Dashboard...</div>;
 
   return (
-    <div className="admin-page">
+    <div className="admin-page-container" style={{ position: 'relative', height: '100vh', width: '100vw', overflow: 'hidden' }}>
         <video
-          className="auth-video-bg"
+          className="admin-video-bg"
           autoPlay
           loop
           muted
           playsInline
-          style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', objectFit: 'cover', zIndex: 1 }}
+          style={{ position: 'fixed', top: 50, left: 50, minWidth: '100vw', minHeight: '100vh', width: 'auto', height: 'auto', transform: 'translate(-50%, -50%)', objectFit: 'cover', zIndex: -1 }}
         >
           <source src="/media/sakura-field-minecraft-moewalls-com-small.mp4" type="video/mp4" />
         </video>
+        
+        {/* Overlay to dim background for readability */}
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.4)', zIndex: 0 }}></div>
 
-      <div className="admin-wrapper" style={{ position: 'relative', zIndex: 2 }}>
-        <div className="admin-container">
+      <div className="admin-app-layout" style={{ 
+          position: 'relative', 
+          zIndex: 1, 
+          display: 'grid',
+          gridTemplateAreas: '"header header" "sidebar main"',
+          gridTemplateColumns: '280px 1fr',
+          gridTemplateRows: '90px 1fr',
+          height: '100vh',
+          padding: '24px',
+          gap: '24px',
+          boxSizing: 'border-box'
+      }}>
+        <Header />
+        
         {/* Sidebar */}
-        <aside className="admin-sidebar">
+        <aside className="admin-sidebar" style={{ gridArea: 'sidebar' }}>
           <div className="admin-logo">
             <FiShield size={20} />
             <span>Admin Portal</span>
@@ -423,7 +510,7 @@ const Admin = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="admin-content">
+        <main className="admin-content" style={{ gridArea: 'main' }}>
 
           {activeTab === 'dashboard' && (
             <>
@@ -737,32 +824,67 @@ const Admin = () => {
           )}
 
           {activeTab === 'server' && (
-            <>
-              <section className="admin-section">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+              <section className="admin-section" style={{ marginBottom: 0 }}>
                 <div className="section-header">
-                  <h2 className="section-h2">Server Identity</h2>
-                  <button className="primary-btn" onClick={() => console.log('Edit clicked')}>Edit</button>
+                  <h2 className="section-h2">Local Server Identity (This Node)</h2>
                 </div>
                 <div className="server-info-content">
-                  <h3 style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Server Name</h3>
-                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#111827', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Server Name</h3>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <FiServer size={24} />
-                    <span>Connected Main Server</span>
+                    <span style={{ textTransform: 'capitalize' }}>
+                      {localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).serverName : 'Connected Main Server'}
+                    </span>
                   </div>
                 </div>
               </section>
 
-              <section className="admin-section">
+              <div className="admin-section">
                 <div className="section-header">
-                  <h2 className="section-h2">Description</h2>
+                  <h2 className="section-h2">Remote / Connected Servers</h2>
+                  <button className="primary-btn" onClick={openCreateServerModal}>Add New Server</button>
                 </div>
-                <div className="server-info-content">
-                  <div style={{ fontSize: '15px', lineHeight: '1.6', color: '#374151', backgroundColor: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                    This is the primary community server for Connected. All general discussions, updates, and public channels are hosted here.
-                  </div>
-                </div>
-              </section>
-            </>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>URL</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {serversList.map(server => (
+                      <tr key={server._id}>
+                        <td style={{ fontWeight: 600 }}>{server.name}</td>
+                        <td><a href={server.url} target="_blank" rel="noopener noreferrer" style={{ color: '#ec4899', textDecoration: 'none' }}>{server.url}</a></td>
+                        <td>
+                          <span className="status-badge" style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)', color: '#ec4899' }}>
+                            {server.category}
+                          </span>
+                        </td>
+                        <td style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {server.description}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className="action-btn-sm" onClick={() => openEditServerModal(server)} title="Edit Server">
+                              <FiEdit size={14} /> Edit
+                            </button>
+                            <button className="action-btn-sm" style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }} onClick={() => handleDeleteServer(server._id)} title="Delete Server">
+                              <FiTrash2 size={14} /> Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {serversList.length === 0 && <tr><td colSpan="5">No remote servers connected.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
           {(activeTab === 'blocked' || activeTab === 'security') && (
@@ -927,9 +1049,64 @@ const Admin = () => {
           }}
         />
       )}
+
+      {serverModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="page-title">{editingServer ? 'Edit Shared Realm' : 'Add New Realm'}</h2>
+            <form onSubmit={handleServerSubmit}>
+              <div className="form-group">
+                <label>Server Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={serverFormData.name}
+                  onChange={(e) => setServerFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Realm name (e.g. Sports Hub)"
+                />
+              </div>
+              <div className="form-group">
+                <label>Server URL *</label>
+                <input
+                  type="url"
+                  required
+                  value={serverFormData.url}
+                  onChange={(e) => setServerFormData(prev => ({ ...prev, url: e.target.value }))}
+                  placeholder="https://api.example.com"
+                />
+              </div>
+              <div className="form-group">
+                <label>Category</label>
+                <select
+                  value={serverFormData.category}
+                  onChange={(e) => setServerFormData(prev => ({ ...prev, category: e.target.value }))}
+                >
+                  <option value="general">General</option>
+                  <option value="sports">Sports</option>
+                  <option value="tech">Tech</option>
+                  <option value="gaming">Gaming</option>
+                  <option value="news">News</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea
+                  value={serverFormData.description}
+                  onChange={(e) => setServerFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="What is this realm about?"
+                  rows={4}
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="action-btn-sm" onClick={() => setServerModalOpen(false)}>Cancel</button>
+                <button type="submit" className="primary-btn">{editingServer ? 'Save Changes' : 'Attach Realm'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
 };
 
 export default Admin;

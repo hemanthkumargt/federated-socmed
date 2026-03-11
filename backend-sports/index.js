@@ -9,6 +9,8 @@ import userRoute from "./routes/userRoute.js"
 import reportRoute from "./routes/reportRoute.js"
 import federationRout from "./routes/federationRoute.js"
 import serverConfigRoute from "./routes/serverConfigRoute.js"
+import searchRoute from "./routes/searchRoute.js"
+import serverRoute from "./routes/serverRoute.js"
 import ServerConfig from "./models/ServerConfig.js"
 
 dotenv.config()
@@ -36,6 +38,8 @@ app.use("/api/channels", channelRoute)
 app.use("/api/reports", reportRoute)
 app.use("/api/federation", federationRout)
 app.use("/api/server-config", serverConfigRoute)
+app.use("/api/search", searchRoute)
+app.use("/api/servers", serverRoute)
 
 app.use((err, req, res, next) => {
   const errorStatus = err.status || 500

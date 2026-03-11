@@ -13,6 +13,7 @@ import reportRoute from "./routes/reportRoute.js"
 import federationRout from "./routes/federationRoute.js"
 import serverConfigRoute from "./routes/serverConfigRoute.js"
 import messageRoute from "./routes/messageRoute.js"
+import serverRoute from "./routes/serverRoute.js"
 import searchRoute from "./routes/searchRoute.js"
 import ServerConfig from "./models/ServerConfig.js"
 
@@ -95,6 +96,7 @@ app.use("/api/federation", federationRout)
 app.use("/api/server-config", serverConfigRoute)
 app.use("/api/messages", messageRoute)
 app.use("/api/search", searchRoute)
+app.use("/api/servers", serverRoute)
 
 app.use((err, req, res, next) => {
   const errorStatus = err.status || 500
