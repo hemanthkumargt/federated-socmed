@@ -380,8 +380,7 @@ export const searchUsers = async (req, res, next) => {
         $or: [
           { displayName: { $regex: new RegExp(parsedQuery, 'i') } },
           { federatedId: { $regex: new RegExp(parsedQuery, 'i') } }
-        ],
-        isRemote: false
+        ]
       }
     ).limit(10);
 

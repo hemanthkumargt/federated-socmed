@@ -740,7 +740,7 @@ const Admin = () => {
               <section className="admin-section">
                 <div className="section-header">
                   <h2 className="section-h2">Server Identity</h2>
-                  <button className="primary-btn" onClick={() => alert('Edit functionality coming soon')}>Edit</button>
+                  <button className="primary-btn" onClick={() => console.log('Edit clicked')}>Edit</button>
                 </div>
                 <div className="server-info-content">
                   <h3 style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Server Name</h3>

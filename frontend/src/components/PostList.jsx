@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiHeart, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiRepeat, FiSlash, FiSend, FiLink } from 'react-icons/fi';
 import { getApiBaseUrl } from '../config/api';
 
-const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
+const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showCommentsId, setShowCommentsId] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -40,10 +40,11 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
       if (data.success) {
         if (onDeletePost) onDeletePost(postId);
         setOpenMenuId(null);
+        showToast('🗑️ Post deleted!');
       } else {
-        alert(data.message || 'Failed to delete post');
+        showToast(`❌ ${data.message || 'Error'}`);
       }
-    } catch { alert('Failed to delete post. Please try again.'); }
+    } catch { showToast('❌ Failed to delete post'); }
   };
 
   const isOwnPost = (post) => {
@@ -53,9 +54,7 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
       post.userDisplayName === currentUser.displayName;
   };
 
-  // Use proper /posts/repost endpoint
   const handleRepost = async (post) => {
-    if (!window.confirm(`Repost "${(post.description || '').slice(0, 50)}..."?`)) return;
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE_URL}/posts/repost`, {
@@ -66,13 +65,13 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
       const data = await res.json();
       if (data.success) {
         showToast('✅ Reposted!');
-        if (onDeletePost) setTimeout(() => window.location.reload(), 800);
+        // Trigger a reload or update to show the new repost
+        if (onFollowChanged) onFollowChanged();
       } else {
-        alert(data.message || 'Could not repost');
+        showToast(`❌ ${data.message || 'Could not repost'}`);
       }
     } catch (err) {
-      console.error('Repost error:', err);
-      alert('Network error. Please try again.');
+      showToast('❌ Network error');
     }
   };
 
@@ -89,11 +88,12 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
       if (data.success) {
         setCommentText('');
         showToast('💬 Comment added!');
-        setTimeout(() => window.location.reload(), 700);
+        // Refresh local comment list for this post if we had it in state
+        if (onFollowChanged) onFollowChanged();
       } else {
-        alert(data.message || 'Failed to add comment');
+        showToast('❌ Failed to add comment');
       }
-    } catch { alert('Network error. Please try again.'); }
+    } catch { showToast('❌ Network error'); }
   };
 
   const handleLike = async (post) => {
@@ -102,8 +102,16 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
     const newCount = isLiked
       ? Math.max(0, (prev?.count ?? post.likeCount) - 1)
       : (prev?.count ?? post.likeCount) + 1;
+    
+    // Optimistic update
     setLocalLikes(l => ({ ...l, [post._id]: { liked: !isLiked, count: newCount } }));
-    if (onLike) onLike(post.federatedId);
+    
+    try {
+      if (onLike) onLike(post.federatedId);
+    } catch (err) {
+      // Revert if error
+      setLocalLikes(l => ({ ...l, [post._id]: { liked: isLiked, count: prev?.count ?? post.likeCount } }));
+    }
   };
 
   const handleShare = (post) => {
@@ -111,15 +119,14 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareUrl).then(() => showToast('🔗 Link copied!'));
     } else {
-      prompt('Copy this link:', shareUrl);
+      showToast('🔗 ' + shareUrl);
     }
   };
 
-  // Tiny inline toast
   const [toast, setToast] = useState('');
   const showToast = (msg) => {
     setToast(msg);
-    setTimeout(() => setToast(''), 2500);
+    setTimeout(() => setToast(''), 3000);
   };
 
   const formatTime = (date) => {
@@ -139,23 +146,23 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="empty-state" style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.4)' }}>
-        {activeTimeline === 'federated' ? 'Federated timeline is empty — try following more people!' : 'No posts yet. Be the first to post!'}
+      <div className="empty-state" style={{ textAlign: 'center', padding: '100px 0', color: 'rgba(255,255,255,0.4)', background: 'rgba(0,0,0,0.1)', borderRadius: '24px' }}>
+        <FiMessageCircle size={48} style={{ opacity: 0.3, marginBottom: '20px' }} />
+        {activeTimeline === 'federated' ? 'Federated timeline is empty — follow more people!' : 'No posts yet. Be the first!'}
       </div>
     );
   }
 
   return (
     <div className="posts-feed">
-      {/* Toast notification */}
       {toast && (
         <div style={{
-          position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(15,20,35,0.95)', backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.15)', borderRadius: '20px',
-          padding: '12px 28px', fontSize: '15px', fontWeight: '700', color: '#fff',
-          zIndex: 99999, boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-          animation: 'fadeIn 0.2s ease'
+          position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(15,20,35,0.95)', backdropFilter: 'blur(30px)',
+          border: '1px solid rgba(255,255,255,0.2)', borderRadius: '22px',
+          padding: '14px 32px', fontSize: '15px', fontWeight: '700', color: '#fff',
+          zIndex: 999999, boxShadow: '0 25px 50px rgba(0,0,0,0.6)',
+          animation: 'modalPop 0.3s ease'
         }}>{toast}</div>
       )}
 
@@ -165,179 +172,124 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost }) => {
         const likeCount = likeState?.count ?? post.likeCount;
 
         return (
-          <div key={post._id} className="post">
-            {/* Repost banner */}
+          <div key={post._id} className="post-card">
             {post.isRepost && (
-              <div className="repost-banner">
+              <div className="repost-header">
                 <FiRepeat size={14} />
-                <span>
-                  Reposted from <strong>{post.originalAuthorDisplayName || 'someone'}</strong>
-                </span>
+                <span>Reposted from <strong>{post.originalAuthorDisplayName || 'someone'}</strong></span>
               </div>
             )}
 
-            {/* Header */}
             <div className="post-header">
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <div className="user-avatar" style={{ flexShrink: 0 }}>
+              <div className="user-info-group">
+                <div className="user-avatar-initials">
                   {getInitials(post.userDisplayName || post.author)}
                 </div>
-                <div>
-                  <div className="author-name">
+                <div className="user-meta">
+                  <span className="display-name">
                     {post.userDisplayName || post.author || 'Anonymous'}
-                    {post.isChannelPost && post.channelName && (
-                      <span style={{ fontSize: '13px', color: '#ec4899', marginLeft: '6px', fontWeight: 600 }}>
-                        in #{post.channelName}
-                      </span>
-                    )}
-                  </div>
-                  <div className="post-time">
-                    {formatTime(post.createdAt)}
-                    {post.serverName && <span style={{ color: 'rgba(255,255,255,0.3)', marginLeft: '6px' }}>• {post.serverName}</span>}
-                  </div>
+                    {post.isChannelPost && <span className="channel-tag">in #{post.channelName}</span>}
+                  </span>
+                  <span className="timestamp">
+                    {formatTime(post.createdAt)} {post.serverName && `• ${post.serverName}`}
+                  </span>
                 </div>
               </div>
 
-              {/* 3-dot menu */}
-              <div className="post-menu-container" ref={openMenuId === post._id ? menuRef : null}>
-                <button className="post-menu" onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}>
+              <div className="post-dropdown-container" ref={openMenuId === post._id ? menuRef : null}>
+                <button className="icon-btn-circle" onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}>
                   <FiMoreHorizontal />
                 </button>
                 {openMenuId === post._id && (
-                  <div className="post-dropdown-menu">
+                  <div className="post-dropdown-overlay">
                     {isOwnPost(post) && (
-                      <button className="dropdown-item delete-item" onClick={() => handleDelete(post._id)}>
-                        <FiTrash2 size={15} /> Delete Post
+                      <button className="dropdown-action-btn delete" onClick={() => handleDelete(post._id)}>
+                        <FiTrash2 /> Delete
                       </button>
                     )}
-                    {!isOwnPost(post) && (
-                      <button className="dropdown-item" onClick={() => { showToast('User muted!'); setOpenMenuId(null); }}>
-                        <FiSlash size={15} /> Mute User
-                      </button>
-                    )}
-                    <button className="dropdown-item" onClick={() => { handleShare(post); setOpenMenuId(null); }}>
-                      <FiLink size={15} /> Copy Link
+                    <button className="dropdown-action-btn" onClick={() => handleShare(post)}>
+                      <FiLink /> Copy Link
+                    </button>
+                    <button className="dropdown-action-btn" onClick={() => { showToast('🔇 User muted!'); setOpenMenuId(null); }}>
+                      <FiSlash /> Mute User
                     </button>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Content */}
-            <div className="post-content" style={{ marginTop: '16px' }}>
+            <div className="post-body">
               {post.description || post.content}
             </div>
 
-            {/* Images */}
             {(post.images?.length > 0 || post.image) && (
-              <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: post.images?.length > 1 ? '1fr 1fr' : '1fr', gap: '8px' }}>
+              <div className="post-media-grid">
                 {(post.images?.length > 0 ? post.images : [post.image]).map((img, i) => (
-                  <img key={i} src={img} alt="" style={{
-                    width: '100%', borderRadius: '16px', maxHeight: '320px',
-                    objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)'
-                  }} />
+                  <img key={i} src={img} alt="" className="post-media-item" />
                 ))}
               </div>
             )}
 
-            {/* Action bar */}
-            <div className="post-footer">
-              {/* Like */}
+            <div className="post-action-bar">
               <button
-                className="post-action"
+                className={`post-action-btn ${isLiked ? 'liked' : ''}`}
                 onClick={() => handleLike(post)}
-                style={isLiked ? { color: '#ec4899', borderColor: 'rgba(236,72,153,0.4)', background: 'rgba(236,72,153,0.1)' } : {}}
               >
                 <FiHeart fill={isLiked ? '#ec4899' : 'none'} />
                 <span>Like</span>
-                {likeCount > 0 && <span className="count">{likeCount}</span>}
+                {likeCount > 0 && <span className="badge">{likeCount}</span>}
               </button>
 
-              {/* Comment */}
               <button
-                className="post-action"
+                className={`post-action-btn ${showCommentsId === post._id ? 'active' : ''}`}
                 onClick={() => setShowCommentsId(showCommentsId === post._id ? null : post._id)}
-                style={showCommentsId === post._id ? { color: '#6366f1', borderColor: 'rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.1)' } : {}}
               >
                 <FiMessageCircle />
                 <span>Comment</span>
-                {post.comments?.length > 0 && <span className="count">{post.comments.length}</span>}
+                {post.comments?.length > 0 && <span className="badge">{post.comments.length}</span>}
               </button>
 
-              {/* Repost */}
-              <button className="post-action" onClick={() => handleRepost(post)}>
+              <button className="post-action-btn" onClick={() => handleRepost(post)}>
                 <FiRepeat />
                 <span>Repost</span>
-                {post.repostCount > 0 && <span className="count">{post.repostCount}</span>}
               </button>
 
-              {/* Share */}
-              <button className="post-action" onClick={() => handleShare(post)}>
+              <button className="post-action-btn" onClick={() => handleShare(post)}>
                 <FiShare2 />
                 <span>Share</span>
               </button>
             </div>
 
-            {/* Comments section */}
             {showCommentsId === post._id && (
-              <div style={{
-                marginTop: '16px', padding: '16px 20px',
-                background: 'rgba(0,0,0,0.15)', borderRadius: '18px',
-                border: '1px solid rgba(255,255,255,0.06)'
-              }}>
-                {/* Comment input */}
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+              <div className="comments-drawer">
+                <div className="comment-input-wrap">
                   <input
                     type="text"
                     placeholder="Write a comment..."
                     value={commentText}
                     onChange={e => setCommentText(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleComment(post)}
-                    style={{
-                      flex: 1, padding: '10px 16px', borderRadius: '14px',
-                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                      color: 'white', outline: 'none', fontSize: '14px'
-                    }}
                   />
-                  <button
-                    className="post-btn"
-                    onClick={() => handleComment(post)}
-                    disabled={!commentText.trim()}
-                    style={{ padding: '10px 16px' }}
-                  >
-                    <FiSend size={16} />
+                  <button onClick={() => handleComment(post)} disabled={!commentText.trim()} className="send-inline-btn">
+                    <FiSend />
                   </button>
                 </div>
 
-                {/* Comments list */}
-                {post.comments?.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {post.comments.map((c, idx) => (
-                      <div key={idx} style={{
-                        display: 'flex', gap: '10px', alignItems: 'flex-start',
-                        padding: '10px 14px', background: 'rgba(255,255,255,0.04)',
-                        borderRadius: '12px'
-                      }}>
-                        <div style={{
-                          width: '32px', height: '32px', borderRadius: '10px', flexShrink: 0,
-                          background: 'linear-gradient(135deg, #ec4899, #be185d)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '12px', fontWeight: '800', color: 'white'
-                        }}>
-                          {getInitials(c.displayName)}
-                        </div>
-                        <div>
-                          <span style={{ color: '#f472b6', fontWeight: '700', fontSize: '13px' }}>{c.displayName}</span>
-                          <p style={{ color: '#cbd5e1', fontSize: '14px', margin: '2px 0 0' }}>{c.content}</p>
+                <div className="comment-list">
+                  {post.comments?.length > 0 ? (
+                    post.comments.map((c, idx) => (
+                      <div key={idx} className="comment-bubble-item">
+                        <div className="comment-avatar-sm">{getInitials(c.displayName)}</div>
+                        <div className="comment-content-box">
+                          <span className="commenter-name">{c.displayName}</span>
+                          <p className="comment-text">{c.content}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', textAlign: 'center', margin: 0 }}>
-                    No comments yet — be the first! 👋
-                  </p>
-                )}
+                    ))
+                  ) : (
+                    <p className="no-comments-msg">No comments yet — be the first! 👋</p>
+                  )}
+                </div>
               </div>
             )}
           </div>

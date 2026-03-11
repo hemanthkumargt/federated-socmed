@@ -61,7 +61,7 @@
   object-fit: cover;
   transition: transform 0.5s ease;
 }
-
+  
 .channel-card:hover .channel-banner img {
   transform: scale(1.1);
 }
