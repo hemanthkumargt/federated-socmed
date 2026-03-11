@@ -1,0 +1,7 @@
+﻿--- STARTING ALL EPICS E2E TEST ---
+
+Epic 1: Auth & User Management
+[Epic 1] User 1 Registration: PASS 
+[Epic 1] User 2 Registration: PASS 
+
+Epic 2: Timelines & Posts (Content Network)

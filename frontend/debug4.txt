@@ -1,0 +1,39 @@
+﻿--- STARTING ALL EPICS E2E TEST ---
+
+Epic 1: Auth & User Management
+[Epic 1] User 1 Registration: PASS 
+[Epic 1] User 2 Registration: PASS 
+
+Epic 2: Timelines & Posts (Content Network)
+[Epic 2] Create Post: PASS {
+  success: true,
+  post: {
+    description: 'Hello from user 1!',
+    image: null,
+    images: [],
+    isEditable: true,
+    isUserPost: true,
+    userDisplayName: 'u1_56674',
+    authorFederatedId: 'u1_56674@food',
+    isChannelPost: false,
+    channelName: null,
+    federatedId: 'u1_56674@food/post/1773144209284',
+    originServer: 'food',
+    serverName: 'food',
+    isRemote: false,
+    federationStatus: 'local',
+    federatedTo: [],
+    likeCount: 0,
+    likedBy: [],
+    _id: '69b00891124e560ab0728ec5',
+    comments: [],
+    createdAt: '2026-03-10T12:03:29.284Z',
+    updatedAt: '2026-03-10T12:03:29.284Z',
+    __v: 0
+  }
+}
+[Epic 2] Follow User: PASS { success: true, message: 'User followed successfully' }
+[Epic 2] Fetch Timeline: PASS 
+
+Epic 3: Communities & RBAC
+[Epic 3] Fetch Global Channels: PASS

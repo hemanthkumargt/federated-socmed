@@ -1,0 +1,64 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: connect-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - connect-network
+
+  backend-food:
+    build:
+      context: ./backend
+    container_name: connect-backend-food
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URL=mongodb://mongodb:27017/federated-socmed
+      - JWT_SECRET=supersecretjwtkey
+      - SERVER_NAME=Food Network
+    depends_on:
+      - mongodb
+    networks:
+      - connect-network
+
+  backend-sports:
+    build:
+      context: ./backend-sports
+    container_name: connect-backend-sports
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URL=mongodb://mongodb:27017/federated-socmed-sports
+      - JWT_SECRET=supersecretjwtkey
+      - SERVER_NAME=Sports Hub
+    depends_on:
+      - mongodb
+    networks:
+      - connect-network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: connect-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend-food
+      - backend-sports
+    networks:
+      - connect-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  connect-network:
+    driver: bridge

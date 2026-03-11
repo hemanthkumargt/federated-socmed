@@ -1,0 +1,34 @@
+﻿--- STARTING ALL EPICS E2E TEST ---
+
+Epic 1: Auth & User Management
+[Epic 1] User 1 Registration: PASS 
+[Epic 1] User 2 Registration: PASS 
+
+Epic 2: Timelines & Posts (Content Network)
+[Epic 2] Create Post: PASS {
+  success: true,
+  post: {
+    description: 'Hello from user 1!',
+    image: null,
+    images: [],
+    isEditable: true,
+    isUserPost: true,
+    userDisplayName: 'u1_49988',
+    authorFederatedId: 'u1_49988@food',
+    isChannelPost: false,
+    channelName: null,
+    federatedId: 'u1_49988@food/post/1773143957241',
+    originServer: 'food',
+    serverName: 'food',
+    isRemote: false,
+    federationStatus: 'local',
+    federatedTo: [],
+    likeCount: 0,
+    likedBy: [],
+    _id: '69b00795124e560ab0728e88',
+    comments: [],
+    createdAt: '2026-03-10T11:59:17.243Z',
+    updatedAt: '2026-03-10T11:59:17.243Z',
+    __v: 0
+  }
+}

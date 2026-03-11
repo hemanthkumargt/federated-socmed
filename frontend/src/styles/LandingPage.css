@@ -1,0 +1,76 @@
+
+.landing-container {
+    width: 100vw;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.video-bg-fallback {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100vw;
+    min-height: 100vh;
+    object-fit: cover;
+    transform: translate(-50%, -50%);
+    z-index: -2;
+    background: radial-gradient(circle at top right, #1e1b4b, #020617);
+}
+
+.content-layer {
+    position: relative;
+    z-index: 1;
+}
+
+/* Feature Grid Fix */
+.features-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 32px !important;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+@media (max-width: 1024px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .features-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.nav-links-row {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 30px !important;
+    list-style: none !important;
+}
+
+.hero-action-container {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100%;
+    margin-top: 40px;
+}
+
+.hero-glass-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 32px !important;
+    padding: 50px 40px !important;
+    max-width: 650px !important;
+    width: 90% !important;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important;
+}

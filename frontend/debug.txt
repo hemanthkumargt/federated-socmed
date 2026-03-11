@@ -1,0 +1,19 @@
+﻿--- STARTING ALL EPICS E2E TEST ---
+
+Epic 1: Auth & User Management
+[Epic 1] User 1 Registration: PASS 
+[Epic 1] User 2 Registration: PASS 
+
+Epic 2: Timelines & Posts (Content Network)
+[Epic 2] Create Post: FAIL {
+  success: false,
+  status: 400,
+  message: 'Post description is required',
+  stack: 'Error: Post description is required\n' +
+    '    at createError (file:///opt/render/project/src/backend/utils/error.js:2:17)\n' +
+    '    at createPost (file:///opt/render/project/src/backend/controllers/postController.js:22:19)\n' +
+    '    at Layer.handleRequest (/opt/render/project/src/backend/node_modules/router/lib/layer.js:152:17)\n' +
+    '    at next (/opt/render/project/src/backend/node_modules/router/lib/route.js:157:13)\n' +
+    '    at verifyToken (file:///opt/render/project/src/backend/middleware/verifyToken.js:33:5)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)'
+}

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+*/dist/
+*/build/
+
+# Environment variables
+.env
+*/.env
+backend/.env
+frontend/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Large media files - too big for GitHub
+frontend/public/media/
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mkv
+Downloads/
+
+# Temp files
+tmp_*.txt
+tmp/
+
+# OS files
+.DS_Store
+Thumbs.db

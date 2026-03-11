@@ -1,0 +1,49 @@
+
+services:
+  # Primary Food/Tech Server
+  - type: web
+    name: federated-socialnetw
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 30d
+      - key: SERVER_NAME
+        value: food
+      - key: ENABLE_REMOTE_SEARCH
+        value: "true"
+
+  # Secondary Sports Server
+  - type: web
+    name: federated-sports-server
+    runtime: node
+    rootDir: backend-sports
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 30d
+      - key: SERVER_NAME
+        value: sports
+      - key: ENABLE_REMOTE_SEARCH
+        value: "true"
+      - key: FRONTEND_URL
+        value: https://federated-socialnetw.vercel.app
