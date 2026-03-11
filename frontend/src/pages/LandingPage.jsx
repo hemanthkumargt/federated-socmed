@@ -39,8 +39,8 @@ const VideoBgGlobal = styled.video`
     object-fit: cover;
     transform: translate(-50%, -50%);
     z-index: -2;
-    opacity: 0.6;
-    background: radial-gradient(circle at top right, #1e1b4b, #020617);
+    opacity: 1; /* Fully visible as requested */
+    background: #020617; /* High-contrast fallback */
 `;
 
 const ContentLayer = styled.div`
@@ -92,10 +92,7 @@ const FeaturesGrid = styled.div`
 
 const LandingPage = () => {
   const [bgVideo] = React.useState(() => {
-    const wallpapers = [
-      "/media/rainy-evening-minecraft.1920x1080.mp4"
-    ];
-    return wallpapers[Math.floor(Math.random() * wallpapers.length)];
+    return "/media/sakura-field-minecraft-moewalls-com-small.mp4";
   });
 
   return (

@@ -37,14 +37,13 @@ const PageContainer = styled.div`
 
 const VideoBackground = styled.video`
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100vw;
-  height: 100vh;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  transform: translate(-50%, -50%);
-  z-index: 0;
-  opacity: 1;
+  z-index: 1;
+  opacity: 1; /* Fully visible as requested */
 `;
 
 const ContentWrapper = styled.div`
@@ -355,7 +354,7 @@ const AuthPage = () => {
 
   const [bgVideo] = useState(() => {
     const wallpapers = [
-      "/media/rainy-evening-minecraft.1920x1080.mp4"
+      "/media/sakura-field-minecraft-moewalls-com-small.mp4"
     ];
     return wallpapers[Math.floor(Math.random() * wallpapers.length)];
   });

@@ -15,7 +15,7 @@
 body {
   font-family: 'Nunito', 'Outfit', sans-serif;
   color: #f1f5f9;
-  background: #020617 !important; /* Proper dark fallback */
+  background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%) fixed !important;
 }
 
 /* Authenticated Container overrides */

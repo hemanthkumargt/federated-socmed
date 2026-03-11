@@ -123,7 +123,7 @@ const NavBar = () => {
         <NavItem><Link to="/servers">Community</Link></NavItem>
       </NavLinks>
 
-      <ActionButton to="/auth" $isScrolled={isScrolled}>
+      <ActionButton to="/servers" $isScrolled={isScrolled}>
         Get Started
       </ActionButton>
     </NavContainer>

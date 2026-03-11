@@ -155,7 +155,7 @@ const Explore = () => {
                         <CardDescription style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '32px' }}>
                             Experience the next evolution of social networking. Immersive, decentralized, and entirely yours.
                         </CardDescription>
-                        <PrimaryButton to="/auth" style={{ fontSize: '18px', padding: '18px 48px', borderRadius: '14px' }}>
+                        <PrimaryButton to="/servers" style={{ fontSize: '18px', padding: '18px 48px', borderRadius: '14px' }}>
                             Start Your Adventure
                         </PrimaryButton>
                     </ActionCard>
