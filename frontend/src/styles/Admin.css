@@ -20,15 +20,16 @@
 }
 
 .admin-sidebar {
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(14, 13, 33, 0.8) !important;
+  backdrop-filter: blur(40px) !important;
+  -webkit-backdrop-filter: blur(40px) !important;
   border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6) !important;
 }
 
 .admin-logo {
@@ -77,13 +78,14 @@
 }
 
 .admin-content {
-  background: rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(14, 13, 33, 0.6) !important;
+  backdrop-filter: blur(40px) !important;
+  -webkit-backdrop-filter: blur(40px) !important;
   border-radius: 20px;
   padding: 32px;
   overflow-y: auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
 }
 
 .page-title {
