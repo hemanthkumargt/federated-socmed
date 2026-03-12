@@ -236,10 +236,10 @@ function UserProfile() {
                                             >
                                                 {isFollowing ? <><FiUserMinus /> Unfollow</> : <><FiUserPlus /> Follow</>}
                                             </button>
-                                            <button className="follow-btn" onClick={handleMute} style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}>
+                                            <button className="follow-btn mute" onClick={handleMute}>
                                                 Mute
                                             </button>
-                                            <button className="follow-btn" onClick={handleBlock} style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2' }}>
+                                            <button className="follow-btn block" onClick={handleBlock}>
                                                 Block
                                             </button>
                                         </div>

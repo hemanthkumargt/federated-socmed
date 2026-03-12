@@ -5,20 +5,45 @@
 }
 
 .profile-header {
-  background: white;
-  border-radius: 12px;
+  background: rgba(14, 13, 33, 0.75) !important;
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-radius: 32px;
   overflow: hidden;
   margin-bottom: 24px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
 
 .profile-cover {
   height: 240px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   position: relative;
   background-size: cover;
   background-position: center;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: translateX(-4px);
 }
 
 .profile-info {
@@ -29,9 +54,9 @@
 .profile-avatar-large {
   width: 140px;
   height: 140px;
-  border-radius: 50%;
-  background: #ec4899;
-  border: 6px solid white;
+  border-radius: 32px;
+  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+  border: 6px solid rgba(2, 6, 23, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,14 +65,14 @@
   color: white;
   margin-top: -70px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
 .profile-details h1 {
   font-family: 'Outfit', sans-serif;
   font-size: 32px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 4px;
 }
 
@@ -58,9 +83,54 @@
   margin-bottom: 16px;
 }
 
+.profile-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.follow-btn {
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.follow-btn.following {
+  background: rgba(236, 72, 153, 0.15);
+  border-color: rgba(236, 72, 153, 0.4);
+  color: #f472b6;
+}
+
+.follow-btn.mute {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.follow-btn.block {
+  background: rgba(244, 63, 94, 0.1);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.2);
+}
+
+.follow-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .bio {
   font-size: 16px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.8;
   margin-bottom: 24px;
   max-width: 600px;
@@ -71,7 +141,7 @@
   flex-wrap: wrap;
   gap: 24px;
   font-size: 14px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .profile-meta span {
@@ -88,27 +158,27 @@
 }
 
 .stat {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
   padding: 24px;
   text-align: center;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
 .stat-number {
   display: block;
   font-size: 32px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
   font-weight: 700;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -120,21 +190,22 @@
 }
 
 .profile-content {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: rgba(14, 13, 33, 0.6) !important;
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 32px;
   padding: 40px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
 }
 
 .profile-content h2 {
   font-family: 'Outfit', sans-serif;
   font-size: 24px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 30px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Modal Styling */

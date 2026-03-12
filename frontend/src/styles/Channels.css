@@ -28,11 +28,11 @@
 }
 
 .channel-card {
-  background: rgba(10, 15, 30, 0.15);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 28px;
+  background: rgba(14, 13, 33, 0.65) !important;
+  backdrop-filter: blur(40px) !important;
+  -webkit-backdrop-filter: blur(40px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 32px;
   overflow: hidden;
   display: flex;
   flex-direction: column;

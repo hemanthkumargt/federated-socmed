@@ -47,10 +47,10 @@ const UnlockAccount = () => {
             </video>
 
             <div className="auth-content">
-                <main className="auth-card" style={{ maxWidth: '450px', padding: '40px', textAlign: 'center' }}>
+                <main className="auth-card" style={{ maxWidth: '450px', padding: '40px', textAlign: 'center', background: 'rgba(14, 13, 33, 0.75)', backdropFilter: 'blur(40px)', borderRadius: '32px', border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 30px 100px rgba(0,0,0,0.6)' }}>
                     <div className="auth-header" style={{ marginBottom: '30px' }}>
-                        <h1>Account Recovery</h1>
-                        <p>Connect Secure Access</p>
+                        <h1 style={{ color: 'white', fontFamily: 'Outfit, sans-serif' }}>Account Recovery</h1>
+                        <p style={{ color: 'rgba(255,255,255,0.6)' }}>Connect Secure Access</p>
                     </div>
 
                     {status === 'loading' && (
