@@ -408,7 +408,7 @@ const Admin = () => {
           loop
           muted
           playsInline
-          style={{ position: 'fixed', top: 50, left: 50, minWidth: '100vw', minHeight: '100vh', width: 'auto', height: 'auto', transform: 'translate(-50%, -50%)', objectFit: 'cover', zIndex: -1 }}
+          style={{ position: 'fixed', top: '50%', left: '50%', minWidth: '100vw', minHeight: '100vh', width: 'auto', height: 'auto', transform: 'translate(-50%, -50%)', objectFit: 'cover', zIndex: -1 }}
         >
           <source src="/media/sakura-field-minecraft-moewalls-com-small.mp4" type="video/mp4" />
         </video>

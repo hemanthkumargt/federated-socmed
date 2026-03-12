@@ -48,26 +48,12 @@ const ServerCard = ({ server }) => {
                     <div style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'rgba(0, 0, 0, 0.6)',
-                        backdropFilter: 'blur(4px)',
+                        background: 'rgba(0, 0, 0, 0.4)',
+                        backdropFilter: 'blur(2px)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
                     }}>
-                        <div style={{
-                            background: 'rgba(255,255,255,0.1)',
-                            color: '#fff',
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            fontSize: '12px',
-                            fontWeight: '800',
-                            letterSpacing: '0.1em',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-                            textTransform: 'uppercase'
-                        }}>
-                            COMING SOON
-                        </div>
                     </div>
                 )}
             </div>

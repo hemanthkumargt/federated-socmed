@@ -20,7 +20,7 @@
 }
 
 .admin-sidebar {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 12px;
@@ -28,13 +28,13 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .admin-logo {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -55,8 +55,8 @@
 }
 
 .admin-nav-item:hover {
-  color: #0f172a;
-  background: rgba(0, 0, 0, 0.03);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
   transform: translateX(4px);
 }
 
@@ -77,19 +77,19 @@
 }
 
 .admin-content {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 12px;
   padding: 32px;
   overflow-y: auto;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .page-title {
   font-size: 28px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 24px;
 }
 
@@ -101,12 +101,12 @@
 }
 
 .stat-card {
-  background: white;
+  background: rgba(15, 23, 42, 0.4);
   padding: 24px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .stat-card:hover {
@@ -127,7 +127,7 @@
 .stat-value {
   font-size: 36px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .stat-trend {
@@ -148,18 +148,18 @@
 }
 
 .admin-section {
-  background: white;
+  background: rgba(15, 23, 42, 0.4);
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .section-h2 {
   font-size: 20px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .admin-table {
@@ -180,10 +180,10 @@
 .admin-table td {
   padding: 16px;
   font-size: 14px;
-  color: #334155;
-  background: #fdfdfd;
-  border-top: 1px solid #f1f5f9;
-  border-bottom: 1px solid #f1f5f9;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .admin-table tr td:first-child {

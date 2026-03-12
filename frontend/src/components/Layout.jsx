@@ -80,7 +80,7 @@ const MainScrollArea = styled.main`
 `;
 
 const wallpapers = [
-  "/media/rainy-evening-minecraft.1920x1080.mp4"
+  "/media/sakura-field-minecraft-moewalls-com-small.mp4"
 ];
 
 const Layout = ({ children }) => {
@@ -101,7 +101,7 @@ const Layout = ({ children }) => {
           <source src={bgVideo} type="video/mp4" />
         </VideoBg>
       )}
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255, 255, 255, 0.45)', zIndex: 0 }}></div>
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.45)', zIndex: 0 }}></div>
       <GlassContainer className="app-container">
         <SidebarLeft />
         <Header />

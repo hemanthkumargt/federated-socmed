@@ -6,16 +6,17 @@
 }
 
 #root {
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: #020617; /* High-contrast dark fallback */
 }
 
 body {
   font-family: 'Nunito', 'Outfit', sans-serif;
-  color: #1e293b;
-  background: #f8fafc fixed !important;
+  color: #e2e8f0;
+  background: #020617 fixed !important;
 }
 
 /* Authenticated Container overrides */
@@ -46,13 +47,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .global-search-container {
@@ -154,15 +155,15 @@ body {
 
 /* Left Sidebar */
 .left-sidebar {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border-radius: 16px;
   padding: 30px 20px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.3);
 }
 
 .logo {
@@ -242,11 +243,11 @@ body {
 }
 
 .post {
-  background: #ffffff; 
-  border: 1px solid #e2e8f0;
+  background: rgba(15, 23, 42, 0.4); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -254,8 +255,8 @@ body {
 
 .post:hover {
   transform: translateY(-2px);
-  background: rgba(15, 20, 45, 0.3);
-  border-color: rgba(236, 72, 153, 0.25);
+  background: rgba(15, 20, 45, 0.6);
+  border-color: rgba(236, 72, 153, 0.4);
 }
 
 .repost-banner {
@@ -280,14 +281,14 @@ body {
 
 /* Post Creator */
 .post-creator {
-  background: rgba(10, 15, 30, 0.08);
+  background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
 }
 
 .post-creator-header {
@@ -388,7 +389,7 @@ body {
 }
 
 .author-name {
-  color: #0f172a;
+  color: #ffffff;
   font-size: 16px;
   font-weight: 800;
   display: flex;
@@ -420,7 +421,7 @@ body {
 }
 
 .post-content {
-  color: #334155;
+  color: #cbd5e1;
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 20px;
@@ -473,20 +474,20 @@ body {
 
 /* Post Card & Action Styles */
 .post-card {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e2e8f0;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .post-card:hover {
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(236, 72, 153, 0.4);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
 }
 
 .post-action-bar {
@@ -561,13 +562,13 @@ body {
 
 /* Right Sidebar Widgets */
 .right-sidebar {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border-radius: 16px;
   padding: 30px 20px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.3);
   overflow-y: auto;
 }
 
@@ -749,12 +750,12 @@ body {
 }
 
 .comment-content-box {
-  background: white;
+  background: rgba(15, 23, 42, 0.4);
   padding: 12px 16px;
   border-radius: 12px;
   font-size: 14px;
   flex: 1;
-  border: 1px solid #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .commenter-name {

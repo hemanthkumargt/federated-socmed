@@ -116,6 +116,31 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
     }
   };
 
+  const handleReport = async (post) => {
+    const reason = window.prompt("Reason for reporting this post:");
+    if (!reason) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ 
+          reportedId: post.federatedId, 
+          targetType: 'post', 
+          reason: reason,
+          description: `Reported post by ${post.author}`
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('🚩 Report submitted for review');
+        setOpenMenuId(null);
+      } else {
+        showToast('❌ Report failed');
+      }
+    } catch { showToast('❌ Network error'); }
+  };
 
   const [toast, setToast] = useState('');
   const showToast = (msg) => {
@@ -207,6 +232,9 @@ const PostList = ({ posts, onLike, activeTimeline, onDeletePost, onFollowChanged
                         <FiTrash2 /> Delete
                       </button>
                     )}
+                    <button className="dropdown-action-btn" onClick={() => handleReport(post)}>
+                      <FiSlash /> Report Post
+                    </button>
                     <button className="dropdown-action-btn" onClick={() => { showToast('🔇 User muted!'); setOpenMenuId(null); }}>
                       <FiSlash /> Mute User
                     </button>
