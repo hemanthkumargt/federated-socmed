@@ -15,7 +15,7 @@
 
 body {
   font-family: 'Nunito', 'Outfit', sans-serif;
-  color: #e2e8f0;
+  color: #ffffff;
   background: #020617 fixed !important;
 }
 
@@ -47,13 +47,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .global-search-container {
@@ -155,7 +155,7 @@ body {
 
 /* Left Sidebar */
 .left-sidebar {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border-radius: 16px;
@@ -163,7 +163,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.2);
 }
 
 .logo {
@@ -244,10 +244,11 @@ body {
 
 .post {
   background: rgba(15, 23, 42, 0.4); 
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -255,8 +256,8 @@ body {
 
 .post:hover {
   transform: translateY(-2px);
-  background: rgba(15, 20, 45, 0.6);
-  border-color: rgba(236, 72, 153, 0.4);
+  background: rgba(15, 20, 45, 0.3);
+  border-color: rgba(236, 72, 153, 0.25);
 }
 
 .repost-banner {
@@ -281,14 +282,14 @@ body {
 
 /* Post Creator */
 .post-creator {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(10, 15, 30, 0.08);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 .post-creator-header {
@@ -421,7 +422,7 @@ body {
 }
 
 .post-content {
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 20px;
@@ -474,20 +475,21 @@ body {
 
 /* Post Card & Action Styles */
 .post-card {
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 .post-card:hover {
   transform: translateY(-4px);
-  background: rgba(15, 23, 42, 0.6);
-  border-color: rgba(236, 72, 153, 0.4);
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 .post-action-bar {
@@ -562,13 +564,13 @@ body {
 
 /* Right Sidebar Widgets */
 .right-sidebar {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border-radius: 16px;
   padding: 30px 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.2);
   overflow-y: auto;
 }
 
@@ -750,7 +752,7 @@ body {
 }
 
 .comment-content-box {
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(0, 0, 0, 0.2);
   padding: 12px 16px;
   border-radius: 12px;
   font-size: 14px;
@@ -762,12 +764,12 @@ body {
   display: block;
   font-weight: 800;
   font-size: 13px;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 4px;
 }
 
 .comment-text {
-  color: #334155;
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
   margin: 0;
 }

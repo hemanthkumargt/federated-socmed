@@ -408,19 +408,19 @@ const Admin = () => {
           loop
           muted
           playsInline
-          style={{ position: 'fixed', top: '50%', left: '50%', minWidth: '100vw', minHeight: '100vh', width: 'auto', height: 'auto', transform: 'translate(-50%, -50%)', objectFit: 'cover', zIndex: 1 }}
+          style={{ position: 'fixed', top: '50%', left: '50%', minWidth: '100vw', minHeight: '100vh', width: 'auto', height: 'auto', transform: 'translate(-50%, -50%)', objectFit: 'cover', zIndex: -1 }}
         >
           <source src="/media/sakura-field-minecraft-moewalls-com-small.mp4" type="video/mp4" />
         </video>
         
         {/* Overlay to dim background for readability */}
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.65)', zIndex: 2 }}></div>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.4)', zIndex: 0 }}></div>
 
-        <div className="admin-app-layout" style={{ 
-            position: 'relative', 
-            zIndex: 3, 
-            display: 'grid',
-          gridTemplateAreas: '"header header" "sidebar main"',
+      <div className="admin-app-layout" style={{ 
+          position: 'relative', 
+          zIndex: 1, 
+          display: 'grid',
+          gridTemplateAreas: '"global-header global-header" "sidebar main"',
           gridTemplateColumns: '280px 1fr',
           gridTemplateRows: '90px 1fr',
           height: '100vh',
@@ -813,7 +813,14 @@ const Admin = () => {
                   <div style={{ fontSize: '18px', fontWeight: '600', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <FiServer size={24} />
                     <span style={{ textTransform: 'capitalize' }}>
-                      {localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).serverName : 'Connected Main Server'}
+                      {(() => {
+                        try {
+                          const user = JSON.parse(localStorage.getItem('user'));
+                          return user?.serverName || 'Connected Main Server';
+                        } catch (e) {
+                          return 'Connected Main Server';
+                        }
+                      })()}
                     </span>
                   </div>
                 </div>

@@ -92,7 +92,13 @@ const FeaturesGrid = styled.div`
 
 const LandingPage = () => {
   const [bgVideo] = React.useState(() => {
-    return "/media/sakura-field-minecraft-moewalls-com-small.mp4";
+    const wallpapers = [
+      "/media/sakura-field-minecraft-moewalls-com-small.mp4",
+      "/media/rainy-evening-minecraft.1920x1080.mp4",
+      "/media/oasis_small.mp4",
+      "/media/minecraft-sakura-oasis-moewalls-com.mp4"
+    ];
+    return wallpapers[Math.floor(Math.random() * wallpapers.length)];
   });
 
   return (
