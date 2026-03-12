@@ -28,7 +28,7 @@ const VideoBg = styled.video`
   min-height: 100vh;
   width: auto;
   height: auto;
-  z-index: -1;
+  z-index: 1;
   transform: translate(-50%, -50%);
   object-fit: cover;
   opacity: 1;
@@ -47,7 +47,7 @@ const GlassContainer = styled.div`
   box-sizing: border-box;
   background: transparent;
   position: relative;
-  z-index: 1;
+  z-index: 3;
 
   @media (max-width: 1200px) {
     grid-template-columns: 240px 1fr 300px;
@@ -101,7 +101,7 @@ const Layout = ({ children }) => {
           <source src={bgVideo} type="video/mp4" />
         </VideoBg>
       )}
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.45)', zIndex: 0 }}></div>
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.65)', zIndex: 2 }}></div>
       <GlassContainer className="app-container">
         <SidebarLeft />
         <Header />

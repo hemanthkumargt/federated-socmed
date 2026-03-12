@@ -408,18 +408,18 @@ const Admin = () => {
           loop
           muted
           playsInline
-          style={{ position: 'fixed', top: '50%', left: '50%', minWidth: '100vw', minHeight: '100vh', width: 'auto', height: 'auto', transform: 'translate(-50%, -50%)', objectFit: 'cover', zIndex: -1 }}
+          style={{ position: 'fixed', top: '50%', left: '50%', minWidth: '100vw', minHeight: '100vh', width: 'auto', height: 'auto', transform: 'translate(-50%, -50%)', objectFit: 'cover', zIndex: 1 }}
         >
           <source src="/media/sakura-field-minecraft-moewalls-com-small.mp4" type="video/mp4" />
         </video>
         
         {/* Overlay to dim background for readability */}
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.4)', zIndex: 0 }}></div>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(2, 6, 23, 0.65)', zIndex: 2 }}></div>
 
-      <div className="admin-app-layout" style={{ 
-          position: 'relative', 
-          zIndex: 1, 
-          display: 'grid',
+        <div className="admin-app-layout" style={{ 
+            position: 'relative', 
+            zIndex: 3, 
+            display: 'grid',
           gridTemplateAreas: '"header header" "sidebar main"',
           gridTemplateColumns: '280px 1fr',
           gridTemplateRows: '90px 1fr',

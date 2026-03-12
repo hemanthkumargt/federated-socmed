@@ -47,7 +47,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
@@ -155,7 +155,7 @@ body {
 
 /* Left Sidebar */
 .left-sidebar {
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border-radius: 16px;
@@ -281,7 +281,7 @@ body {
 
 /* Post Creator */
 .post-creator {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -562,7 +562,7 @@ body {
 
 /* Right Sidebar Widgets */
 .right-sidebar {
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border-radius: 16px;
